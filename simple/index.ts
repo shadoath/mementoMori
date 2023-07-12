@@ -1,15 +1,28 @@
 // You need to explicitly declare types for your constants and variables.
+interface RectangleDimensions {
+  rows: number;
+  cols: number;
+}
+
+const life_expectancy: number = 90;
+let numDecades: number = Math.floor(life_expectancy / 10);
+populate_calendar(numDecades);
+fill_calendar("04/05/1992");
+
+const DAYS_PER_YEAR: number = 365;
+const DAYS_PER_WEEK: number = 7;
 
 const rows_per_rect: string = get_css_variable("--rows-per-rect");
 const cols_per_rect: string = get_css_variable("--cols-per-rect");
 
 let calendar: HTMLElement | null = document.getElementById("calendar");
 
-const life_expectancy: number = 60;
-let numDecades: number = Math.floor(life_expectancy / 10);
-populate_calendar(numDecades);
-
-fill_calendar("04/05/1992");
+function getNumberFromCSSVar(name: string): number {
+  const value: string = getComputedStyle(
+    document.documentElement
+  ).getPropertyValue(name);
+  return Number(value);
+}
 
 function fill_calendar(bday: string) {
   let [day, month, year]: string[] = bday.split("/");
