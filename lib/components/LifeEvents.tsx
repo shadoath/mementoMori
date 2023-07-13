@@ -1,13 +1,8 @@
-import { getWeekIdFromDate } from '../functions'
+import { LifeEvent, useBaseContext } from '../../context/BaseContext'
+import { getWeekIdFromDate } from '../../app/functions'
 
-export type LifeEvent = {
-  date: Date
-  description: string
-  color: string
-  icon?: string
-}
-
-export const EventList = ({ events }: { events: LifeEvent[] }) => {
+export const EventList = () => {
+  const { lifeEvents } = useBaseContext()
   const writeLifeEvent = (lifeEvent: LifeEvent) => {
     let id = getWeekIdFromDate(lifeEvent.date)
     let weekDiv = document.getElementById(id)
@@ -24,7 +19,7 @@ export const EventList = ({ events }: { events: LifeEvent[] }) => {
   }
   return (
     <div id='life-events' className='stats wrapper'>
-      {events.map((e) => {
+      {lifeEvents.map((e) => {
         writeLifeEvent(e)
         return null
       })}

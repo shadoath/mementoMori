@@ -1,30 +1,14 @@
-import { Calendar } from './components/Calendar'
-import { LifeEvent, EventList } from './components/LifeEvents'
-import { Quote } from './components/Quote'
-import { Stats } from './components/Stats'
-import { getWeeksLeft } from './functions'
+'use client'
 
-const myBirthDate = new Date('1992-05-04')
-const myLifeExpectancy = 90
-const totalWeeksInLife = myLifeExpectancy * 52.1429
-const lifeEvents: LifeEvent[] = []
+import { BaseContextProvider } from '../context/BaseContext'
+import { MementoMori } from '../lib'
 
-const App = () => {
-  const weeksLeft = getWeeksLeft(myBirthDate, totalWeeksInLife)
-
+const MementoMoriPage = () => {
   return (
-    <div className='App'>
-      <h2 style={{ textAlign: 'center' }}>MEMENTO MORI </h2>
-      <Calendar birthdate={myBirthDate} totalYears={myLifeExpectancy} />
-      <Stats
-        weeksLeft={weeksLeft}
-        totalWeeksInLife={totalWeeksInLife}
-        lifeExpectancy={myLifeExpectancy}
-      />
-      <EventList events={lifeEvents} />
-      <Quote />
-    </div>
+    <BaseContextProvider>
+      <MementoMori />
+    </BaseContextProvider>
   )
 }
 
-export default App
+export default MementoMoriPage

@@ -2,7 +2,8 @@
   --columns-per-row: 16;
   --color-background: #fff;
   --color-dark-gray: #333;
-  --color-dark-gray-filled: #888;
+  --color-dark-gray-filled: #777;
+  --color-dark-gray-extra-filled: #222;
   --color-black: #000;
   --color-white: #fff;
   --rect-gap: 6px;
@@ -90,6 +91,10 @@ body {
 .week-cell.filled:not(.invisible) {
   background-color: var(--color-dark-gray-filled);
   border-color: var(--color-dark-gray-filled);
+}
+.week-cell.extra:not(.invisible) {
+  background-color: var(--color-dark-gray-extra-filled);
+  border-color: var(--color-dark-gray-extra-filled);
 }
 
 @keyframes pulse {

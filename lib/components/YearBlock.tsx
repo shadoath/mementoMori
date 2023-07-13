@@ -1,14 +1,13 @@
-import { getDaysInMonth } from '../functions'
+import { useBaseContext } from '../../context/BaseContext'
+import { getDaysInMonth } from '../../app/functions'
 
-export const YearBlock = ({
-  year,
-  birthdate,
-}: {
-  year: number
-  birthdate: Date
-}) => {
+export const YearBlock = ({ yearCount }: { yearCount: number }) => {
+  const { birthdate, lifeExpectancy } = useBaseContext()
   let numberOfDaysPerSquare: number
   const currentTime = new Date().getTime()
+  let baseYear = birthdate.getFullYear()
+
+  const year = baseYear + yearCount
 
   return (
     <div className='year-wrapper' key={year}>
@@ -22,20 +21,24 @@ export const YearBlock = ({
                 const weekId = `${year}-${i + 1}-${j + 1}`
                 const weekDateEpoch = new Date(weekId).getTime()
                 const isFilled = weekDateEpoch < currentTime
-                const _date = new Date(
+                const thisYearDate = new Date(
                   year,
                   i,
                   Math.floor((j + 1) * numberOfDaysPerSquare)
                 )
-                const is_invisible = _date < birthdate
+                const isInvisible = thisYearDate < birthdate
+                const isExtraWeek =
+                  new Date(birthdate).getTime() +
+                    lifeExpectancy * 52.1429 * 7 * 24 * 60 * 60 * 1000 <
+                  weekDateEpoch
 
                 return (
                   <div
                     id={weekId}
                     key={j}
                     className={`week-cell ${isFilled ? 'filled' : ''} ${
-                      is_invisible ? 'invisible' : ''
-                    }`}
+                      isInvisible ? 'invisible' : ''
+                    } ${isExtraWeek ? 'extra' : ''}`}
                   />
                 )
               })}

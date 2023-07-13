@@ -1,12 +1,9 @@
-export const Stats = ({
-  weeksLeft,
-  totalWeeksInLife,
-  lifeExpectancy,
-}: {
-  weeksLeft: number
-  totalWeeksInLife: number
-  lifeExpectancy: number
-}) => {
+import { useBaseContext } from '../../context/BaseContext'
+import { getWeeksLeft } from '../../app/functions'
+
+export const Stats = () => {
+  const { birthdate, lifeExpectancy, totalWeeksInLife } = useBaseContext()
+  const weeksLeft = getWeeksLeft(birthdate, totalWeeksInLife)
   const percentOfLifeLived = Math.round(
     ((Math.ceil(totalWeeksInLife) - Math.ceil(weeksLeft)) /
       Math.ceil(totalWeeksInLife)) *
