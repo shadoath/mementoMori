@@ -10,11 +10,11 @@ export const Quote = () => {
         <br />
         <br />
         But when it is wasted in heedless luxury and spent on no good activity,
-        we are forced at last by death's final constraint to realize that it has
-        passed away before we knew it was passing.
+        we are forced at last by death&apos;s final constraint to realize that
+        it has passed away before we knew it was passing.
         <br />
         <br /> So it is: we are not given a short life but we make it short, and
-        we are not ill-supplied but wasteful of it… <br />
+        we are not ill-supplied but wasteful of it... <br />
         <br />
         <b>Life is long if you know how to use it.</b>
         <br />
