@@ -38,11 +38,6 @@ const birthdateOptions = {
     console.log(str, typeof str)
     return new Date(str)
   },
-  logger: (error: any) => {
-    // Do some logging
-    console.log(error)
-  },
-  syncData: false, // You can disable cross context sync
 }
 const BaseContextProvider = ({ children }: { children: React.ReactNode }) => {
   const myLifeExpectancy = 42
@@ -54,15 +49,12 @@ const BaseContextProvider = ({ children }: { children: React.ReactNode }) => {
 
   console.log(birthdate)
   // const [birthdate, setBirthdate] = useState(new Date(birthdateString))
-  const [lifeExpectancy, setLifeExpectancy] = useState(42)
+  const [lifeExpectancy, setLifeExpectancy] = useLocalStorage(
+    'lifeExpectancy',
+    42
+  )
   const [lifeEvents, setLifeEvents] = useState<LifeEvent[]>([])
   const totalWeeksInLife = myLifeExpectancy * 52.1429
-
-  // useEffect(() => {
-  //   setBirthdateString(birthdate.toISOString().split('T')[0])
-  // }, [birthdate])
-
-  // useEffect(() => {
 
   return (
     <BaseContext.Provider
