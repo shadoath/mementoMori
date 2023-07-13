@@ -29,7 +29,7 @@ export const YearBlock = ({ yearCount }: { yearCount: number }) => {
                 const isInvisible = thisYearDate < birthdate
                 const isExtraWeek =
                   new Date(birthdate).getTime() +
-                    lifeExpectancy * 52.1429 * 7 * 24 * 60 * 60 * 1000 <
+                    lifeExpectancy * 52.1429 * 7 * 24 * 60 * 60 * 1000 >
                   weekDateEpoch
 
                 return (
