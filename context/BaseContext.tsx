@@ -1,5 +1,6 @@
 'use client'
-import React from 'react'
+import React, { useEffect, useState } from 'react'
+import useLocalStorage from 'use-local-storage'
 
 export type LifeEvent = {
   date: Date
@@ -7,6 +8,7 @@ export type LifeEvent = {
   color: string
   icon?: string
 }
+const defaultBirthdate = new Date('2005-04-29')
 
 const BaseContext = React.createContext<{
   birthdate: Date
@@ -17,7 +19,7 @@ const BaseContext = React.createContext<{
   setLifeExpectancy: (years: number) => void
   setLifeEvents: (events: LifeEvent[]) => void
 }>({
-  birthdate: new Date('2005-04-29'),
+  birthdate: defaultBirthdate,
   lifeExpectancy: 42,
   lifeEvents: [],
   totalWeeksInLife: 42 * 52.1429,
@@ -25,15 +27,42 @@ const BaseContext = React.createContext<{
   setLifeExpectancy: () => {},
   setLifeEvents: () => {},
 })
-
+const birthdateOptions = {
+  serializer: (obj: any): string => {
+    /* Serialize logic */
+    console.log(obj, typeof obj)
+    return obj.toISOString().split('T')[0]
+  },
+  parser: (str: any): Date => {
+    /* Parse logic */
+    console.log(str, typeof str)
+    return new Date(str)
+  },
+  logger: (error: any) => {
+    // Do some logging
+    console.log(error)
+  },
+  syncData: false, // You can disable cross context sync
+}
 const BaseContextProvider = ({ children }: { children: React.ReactNode }) => {
   const myLifeExpectancy = 42
+  const [birthdate, setBirthdate] = useLocalStorage<Date>(
+    'birthdate',
+    defaultBirthdate,
+    birthdateOptions
+  )
 
-  const [birthdate, setBirthdate] = React.useState(new Date('2005-04-29'))
-  const [lifeExpectancy, setLifeExpectancy] = React.useState(42)
-  const [lifeEvents, setLifeEvents] = React.useState<LifeEvent[]>([])
-
+  console.log(birthdate)
+  // const [birthdate, setBirthdate] = useState(new Date(birthdateString))
+  const [lifeExpectancy, setLifeExpectancy] = useState(42)
+  const [lifeEvents, setLifeEvents] = useState<LifeEvent[]>([])
   const totalWeeksInLife = myLifeExpectancy * 52.1429
+
+  // useEffect(() => {
+  //   setBirthdateString(birthdate.toISOString().split('T')[0])
+  // }, [birthdate])
+
+  // useEffect(() => {
 
   return (
     <BaseContext.Provider

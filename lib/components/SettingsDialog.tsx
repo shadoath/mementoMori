@@ -1,3 +1,4 @@
+import { Settings } from '@mui/icons-material'
 import {
   Button,
   Dialog,
@@ -6,12 +7,10 @@ import {
   DialogTitle,
   Grid,
   IconButton,
-  Input,
   TextField,
 } from '@mui/material'
-import { useBaseContext } from '../../context/BaseContext'
-import { Settings } from '@mui/icons-material'
 import { useState } from 'react'
+import { useBaseContext } from '../../context/BaseContext'
 
 export const SettingsDialog = (isOpen: boolean) => {
   const { birthdate, setBirthdate, lifeExpectancy, setLifeExpectancy } =
