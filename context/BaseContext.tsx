@@ -1,5 +1,4 @@
-'use client'
-import React, { useEffect, useState } from 'react'
+import React, { useState } from 'react'
 import useLocalStorage from 'use-local-storage'
 
 export type LifeEvent = {
@@ -27,15 +26,12 @@ const BaseContext = React.createContext<{
   setLifeExpectancy: () => {},
   setLifeEvents: () => {},
 })
+
 const birthdateOptions = {
   serializer: (obj: any): string => {
-    /* Serialize logic */
-    console.log(obj, typeof obj)
     return obj.toISOString().split('T')[0]
   },
   parser: (str: any): Date => {
-    /* Parse logic */
-    console.log(str, typeof str)
     return new Date(str)
   },
 }
@@ -48,7 +44,6 @@ const BaseContextProvider = ({ children }: { children: React.ReactNode }) => {
   )
 
   console.log(birthdate)
-  // const [birthdate, setBirthdate] = useState(new Date(birthdateString))
   const [lifeExpectancy, setLifeExpectancy] = useLocalStorage(
     'lifeExpectancy',
     42
