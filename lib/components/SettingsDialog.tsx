@@ -53,9 +53,8 @@ export const SettingsDialog = () => {
                 onChange={(e) => {
                   setLifeExpectancy(Number(e.target.value))
                 }}
-                inputProps={{
-                  min: 1,
-                  max: 111,
+                InputProps={{
+                  inputProps: { min: 1, max: 111 },
                 }}
               />
             </Grid>
