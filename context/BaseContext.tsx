@@ -13,11 +13,17 @@ const BaseContext = React.createContext<{
   lifeExpectancy: number
   lifeEvents: LifeEvent[]
   totalWeeksInLife: number
+  setBirthdate: (date: Date) => void
+  setLifeExpectancy: (years: number) => void
+  setLifeEvents: (events: LifeEvent[]) => void
 }>({
   birthdate: new Date('2005-04-29'),
   lifeExpectancy: 42,
   lifeEvents: [],
   totalWeeksInLife: 42 * 52.1429,
+  setBirthdate: () => {},
+  setLifeExpectancy: () => {},
+  setLifeEvents: () => {},
 })
 
 const BaseContextProvider = ({ children }: { children: React.ReactNode }) => {
@@ -36,6 +42,9 @@ const BaseContextProvider = ({ children }: { children: React.ReactNode }) => {
         lifeExpectancy,
         lifeEvents,
         totalWeeksInLife,
+        setBirthdate,
+        setLifeExpectancy,
+        setLifeEvents,
       }}
     >
       {children}
