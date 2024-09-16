@@ -7,8 +7,9 @@ export type LifeEvent = {
   color: string
   icon?: string
 }
-const defaultBirthdate = new Date('2005-04-29')
+export const defaultBirthdate = new Date('2005-04-29')
 
+export const WEEKS_PER_YEAR = 52.1429
 const BaseContext = React.createContext<{
   birthdate: Date
   lifeExpectancy: number
@@ -21,7 +22,7 @@ const BaseContext = React.createContext<{
   birthdate: defaultBirthdate,
   lifeExpectancy: 42,
   lifeEvents: [],
-  totalWeeksInLife: 42 * 52.1429,
+  totalWeeksInLife: 42 * WEEKS_PER_YEAR,
   setBirthdate: () => {},
   setLifeExpectancy: () => {},
   setLifeEvents: () => {},
@@ -43,13 +44,12 @@ const BaseContextProvider = ({ children }: { children: React.ReactNode }) => {
     birthdateOptions
   )
 
-  console.log(birthdate)
   const [lifeExpectancy, setLifeExpectancy] = useLocalStorage(
     'lifeExpectancy',
     42
   )
   const [lifeEvents, setLifeEvents] = useState<LifeEvent[]>([])
-  const totalWeeksInLife = myLifeExpectancy * 52.1429
+  const totalWeeksInLife = myLifeExpectancy * WEEKS_PER_YEAR
 
   return (
     <BaseContext.Provider

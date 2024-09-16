@@ -10,6 +10,7 @@ export const getWeekIdFromDate = (date: Date) => {
 
 export const getWeeksLeft = (birthdate: Date, totalWeeksInLife: number) => {
   const ageDifMs = Date.now() - birthdate.getTime()
+  // if ageDifMs is negative, the birthdate is in the future
 
   return Math.ceil(totalWeeksInLife - ageDifMs / (1000 * 60 * 60 * 24 * 7))
 }
