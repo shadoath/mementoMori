@@ -1,7 +1,8 @@
 :root {
   --columns-per-row: 16;
   --color-background: #fff;
-  --color-dark-gray: #333;
+  --color-dark-gray: #1c1c1c;
+  --color-light-gray-filled: #b9b9b9;
   --color-dark-gray-filled: #777;
   --color-dark-gray-extra-filled: #333;
   --color-black: #000;
@@ -95,6 +96,10 @@ body {
 .week-cell.extra:not(.filled) {
   background-color: var(--color-dark-gray-extra-filled);
   border-color: var(--color-dark-gray-extra-filled);
+}
+.week-cell.future:not(.filled) {
+  background-color: var(--color-white);
+  border-color: var(--color-white);
 }
 
 @keyframes pulse {

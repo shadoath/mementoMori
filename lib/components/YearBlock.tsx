@@ -26,6 +26,7 @@ export const YearBlock = ({ yearCount }: { yearCount: number }) => {
                   i,
                   Math.floor((j + 1) * numberOfDaysPerSquare)
                 )
+                const isAfterToday = thisYearDate.getTime() > currentTime
                 const isInvisible = thisYearDate < birthdate
                 const isExtraWeek =
                   new Date(birthdate).getTime() +
@@ -38,7 +39,7 @@ export const YearBlock = ({ yearCount }: { yearCount: number }) => {
                     key={j}
                     className={`week-cell ${isFilled ? 'filled' : ''} ${
                       isInvisible ? 'invisible' : ''
-                    } ${isExtraWeek ? 'extra' : ''}`}
+                    } ${isExtraWeek ? 'extra' : ''} `}
                   />
                 )
               })}

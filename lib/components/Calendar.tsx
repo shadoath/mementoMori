@@ -9,7 +9,6 @@ export const Calendar = () => {
   if (yearsAlive > lifeExpectancy) {
     // extend calendar if we're past the life expectancy
     totalYearsToDisplay = yearsAlive
-    console.log({ totalYears: lifeExpectancy, yearsAlive, totalYearsToDisplay })
   }
   let years: JSX.Element[] = []
 

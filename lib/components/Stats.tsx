@@ -7,16 +7,9 @@ export const Stats = () => {
   const totalWeeksInLife = lifeExpectancy * 52 // Calculate total weeks in life based on life expectancy
 
   const { percentOfLifeLived, weeksLeft } = useMemo(() => {
-    console.log('stats', { birthdate, totalWeeksInLife })
     const weeksLeft = getWeeksLeft(birthdate, totalWeeksInLife)
     const weeksLived = totalWeeksInLife - weeksLeft
     const percentOfLifeLived = Math.round((weeksLived / totalWeeksInLife) * 100)
-    console.log('stats', {
-      birthdate,
-      totalWeeksInLife,
-      percentOfLifeLived,
-      weeksLeft,
-    })
     return { percentOfLifeLived, weeksLeft }
   }, [birthdate, totalWeeksInLife])
 
