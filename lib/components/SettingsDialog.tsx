@@ -10,12 +10,14 @@ import {
   TextField,
 } from '@mui/material'
 import { useState } from 'react'
-import { useBaseContext } from '../../context/BaseContext'
+import { defaultBirthdate, useBaseContext } from '../../context/BaseContext'
 
 export const SettingsDialog = () => {
   const { birthdate, setBirthdate, lifeExpectancy, setLifeExpectancy } =
     useBaseContext()
-  const [showSettings, setShowSettings] = useState(false)
+  const [showSettings, setShowSettings] = useState(
+    birthdate === defaultBirthdate
+  )
   const handleClose = () => {
     setShowSettings(false)
   }
@@ -31,7 +33,7 @@ export const SettingsDialog = () => {
       </IconButton>
       <Dialog open={showSettings} onClose={handleClose}>
         <DialogTitle>Settings</DialogTitle>
-        <DialogContent>
+        <DialogContent style={{ minWidth: 300 }}>
           <Grid sx={{ mt: 1 }} container spacing={2}>
             <Grid item xs={12} sm={6}>
               <TextField
