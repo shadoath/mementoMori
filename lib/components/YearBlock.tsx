@@ -5,7 +5,7 @@ export const YearBlock = ({ yearCount }: { yearCount: number }) => {
   const { birthdate, lifeExpectancy } = useBaseContext()
   let numberOfDaysPerSquare: number
   const currentTime = new Date().getTime()
-  let baseYear = birthdate.getFullYear()
+  const baseYear = birthdate.getFullYear()
 
   const year = baseYear + yearCount
 
