@@ -1,16 +1,16 @@
-import { LifeEvent, useBaseContext } from '../../context/BaseContext'
+import { type LifeEvent, useBaseContext } from '../../context/BaseContext'
 import { getWeekIdFromDate } from '../../app/functions'
 
 export const EventList = () => {
   const { lifeEvents } = useBaseContext()
   const writeLifeEvent = (lifeEvent: LifeEvent) => {
-    let id = getWeekIdFromDate(lifeEvent.date)
-    let weekDiv = document.getElementById(id)
+    const id = getWeekIdFromDate(lifeEvent.date)
+    const weekDiv = document.getElementById(id)
 
     if (weekDiv == null || weekDiv.classList.contains('invisible')) {
-      let y = lifeEvent.date.getFullYear()
-      let m = lifeEvent.date.getMonth() + 1
-      let d = lifeEvent.date.getDate()
+      const y = lifeEvent.date.getFullYear()
+      const m = lifeEvent.date.getMonth() + 1
+      const d = lifeEvent.date.getDate()
       console.error(
         `Event '${lifeEvent.description}' has an invalid date (${y}-${m}-${d})`
       )

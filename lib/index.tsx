@@ -1,4 +1,3 @@
-import { useState } from 'react'
 import { Calendar } from '../lib/components/Calendar'
 import { EventList } from '../lib/components/LifeEvents'
 import { Quote } from '../lib/components/Quote'
