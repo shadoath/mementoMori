@@ -3,8 +3,8 @@ export const getDaysInMonth = (month: number, year: number) => {
 }
 
 export const getWeekIdFromDate = (date: Date) => {
-  let n_days = getDaysInMonth(date.getMonth() + 1, date.getFullYear())
-  let week_number = Math.floor((date.getDate() - 1) / (n_days / 4))
+  const n_days = getDaysInMonth(date.getMonth() + 1, date.getFullYear())
+  const week_number = Math.floor((date.getDate() - 1) / (n_days / 4))
   return `${date.getFullYear()}-${date.getMonth() + 1}-${week_number + 1}`
 }
 
