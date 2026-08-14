@@ -101,6 +101,19 @@ export const formatDateInput = (date: Date) =>
     date.getMonth() + 1
   )}-${pad(date.getDate())}`
 
+/**
+ * Reshapes whatever is in a date field into YYYY-MM-DD as it is typed, so the
+ * displayed format never depends on the browser's locale. Keeps only digits and
+ * re-groups them, which means backspacing never strands a trailing dash.
+ */
+export const formatDateDraft = (raw: string) => {
+  const digits = raw.replace(/\D/g, '').slice(0, 8)
+
+  return [digits.slice(0, 4), digits.slice(4, 6), digits.slice(6, 8)]
+    .filter(Boolean)
+    .join('-')
+}
+
 /** Returns null for partial or nonsense input, e.g. a cleared date field. */
 export const parseDateInput = (value: string): Date | null => {
   const match = /^(\d{4})-(\d{2})-(\d{2})$/.exec(value)

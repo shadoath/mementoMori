@@ -2,6 +2,7 @@ import { describe, expect, it } from 'vitest'
 import {
   MS_PER_WEEK,
   SQUARES_PER_MONTH,
+  formatDateDraft,
   formatDateInput,
   getDaysInMonth,
   getSquareEndDate,
@@ -121,6 +122,31 @@ describe('parseDateInput', () => {
     expect(parseDateInput('2023-02-31')).toBeNull()
     expect(parseDateInput('2023-02-29')).toBeNull()
     expect(parseDateInput('2024-02-29')).not.toBeNull()
+  })
+})
+
+describe('formatDateDraft', () => {
+  it('punctuates bare digits', () => {
+    expect(formatDateDraft('1993')).toBe('1993')
+    expect(formatDateDraft('19930')).toBe('1993-0')
+    expect(formatDateDraft('199305')).toBe('1993-05')
+    expect(formatDateDraft('19930514')).toBe('1993-05-14')
+  })
+
+  it('leaves an already punctuated date alone', () => {
+    expect(formatDateDraft('1993-05-14')).toBe('1993-05-14')
+  })
+
+  it('never strands a trailing dash while backspacing', () => {
+    expect(formatDateDraft('1993-05-')).toBe('1993-05')
+    expect(formatDateDraft('1993-')).toBe('1993')
+    expect(formatDateDraft('')).toBe('')
+  })
+
+  it('ignores stray characters and overlong input', () => {
+    expect(formatDateDraft('1993/05/14')).toBe('1993-05-14')
+    expect(formatDateDraft('abc1993def0514')).toBe('1993-05-14')
+    expect(formatDateDraft('199305149999')).toBe('1993-05-14')
   })
 })
 

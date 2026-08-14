@@ -18,7 +18,11 @@ import {
 } from '@mui/material'
 import { useEffect, useMemo, useState } from 'react'
 import { createAppTheme } from '../theme'
-import { formatDateInput, parseDateInput } from '../../app/functions'
+import {
+  formatDateDraft,
+  formatDateInput,
+  parseDateInput,
+} from '../../app/functions'
 import {
   DEFAULT_EVENT_COLOR,
   MAX_LIFE_EXPECTANCY,
@@ -53,6 +57,9 @@ export const SettingsDialog = () => {
   } = useBaseContext()
 
   const [showSettings, setShowSettings] = useState(isFirstVisit)
+  const [birthdateDraft, setBirthdateDraft] = useState(() =>
+    formatDateInput(birthdate)
+  )
   const [expectancyDraft, setExpectancyDraft] = useState(String(lifeExpectancy))
   const [eventDate, setEventDate] = useState('')
   const [eventDescription, setEventDescription] = useState('')
@@ -65,8 +72,15 @@ export const SettingsDialog = () => {
   )
 
   useEffect(() => {
+    setBirthdateDraft(formatDateInput(birthdate))
+  }, [birthdate])
+
+  useEffect(() => {
     setExpectancyDraft(String(lifeExpectancy))
   }, [lifeExpectancy])
+
+  const birthdateIsIncomplete =
+    birthdateDraft !== '' && parseDateInput(birthdateDraft) === null
 
   const handleClose = () => {
     setShowSettings(false)
@@ -107,17 +121,30 @@ export const SettingsDialog = () => {
           <Grid sx={{ mt: 1 }} container spacing={2}>
             <Grid item xs={12} sm={6}>
               <TextField
-                type='date'
                 fullWidth
                 label='Birthdate'
+                placeholder='YYYY-MM-DD'
                 InputLabelProps={{ shrink: true }}
-                value={formatDateInput(birthdate)}
+                inputProps={{
+                  inputMode: 'numeric',
+                  maxLength: 10,
+                  pattern: '\\d{4}-\\d{2}-\\d{2}',
+                }}
+                value={birthdateDraft}
+                error={birthdateIsIncomplete}
+                helperText={birthdateIsIncomplete ? 'YYYY-MM-DD' : ' '}
                 onChange={(e) => {
-                  // Clearing the field yields '', which is not a date.
-                  const parsed = parseDateInput(e.target.value)
+                  const next = formatDateDraft(e.target.value)
+                  setBirthdateDraft(next)
+                  // Only a complete, real date is worth redrawing the calendar
+                  // for; anything shorter is still being typed.
+                  const parsed = parseDateInput(next)
                   if (parsed) {
                     setBirthdate(parsed)
                   }
+                }}
+                onBlur={() => {
+                  setBirthdateDraft(formatDateInput(birthdate))
                 }}
               />
             </Grid>
@@ -154,14 +181,20 @@ export const SettingsDialog = () => {
           <Grid container spacing={1} alignItems='center'>
             <Grid item xs={12} sm={5}>
               <TextField
-                type='date'
                 fullWidth
                 size='small'
                 label='Date'
+                placeholder='YYYY-MM-DD'
                 InputLabelProps={{ shrink: true }}
+                inputProps={{
+                  inputMode: 'numeric',
+                  maxLength: 10,
+                  pattern: '\\d{4}-\\d{2}-\\d{2}',
+                }}
                 value={eventDate}
+                error={eventDate !== '' && parsedEventDate === null}
                 onChange={(e) => {
-                  setEventDate(e.target.value)
+                  setEventDate(formatDateDraft(e.target.value))
                 }}
               />
             </Grid>

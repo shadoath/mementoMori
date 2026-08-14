@@ -31,8 +31,46 @@ describe('SettingsDialog', () => {
     expect(screen.getByLabelText('Birthdate')).toBeInTheDocument()
   })
 
-  it('survives the birthdate field being cleared', () => {
+  it('shows the birthdate as YYYY-MM-DD', () => {
     renderSettings()
+    openDialog()
+
+    expect(screen.getByLabelText('Birthdate')).toHaveValue('2000-01-01')
+  })
+
+  it('punctuates the date as it is typed', () => {
+    renderSettings()
+    openDialog()
+    const input = screen.getByLabelText('Birthdate')
+
+    // Bare digits, the way someone actually types a date.
+    fireEvent.change(input, { target: { value: '1993' } })
+    expect(input).toHaveValue('1993')
+
+    fireEvent.change(input, { target: { value: '19930' } })
+    expect(input).toHaveValue('1993-0')
+
+    fireEvent.change(input, { target: { value: '19930514' } })
+    expect(input).toHaveValue('1993-05-14')
+  })
+
+  it('backspaces without stranding a dash', () => {
+    renderSettings()
+    openDialog()
+    const input = screen.getByLabelText('Birthdate')
+
+    fireEvent.change(input, { target: { value: '1993-05-1' } })
+    expect(input).toHaveValue('1993-05-1')
+
+    fireEvent.change(input, { target: { value: '1993-05-' } })
+    expect(input).toHaveValue('1993-05')
+
+    fireEvent.change(input, { target: { value: '1993-0' } })
+    expect(input).toHaveValue('1993-0')
+  })
+
+  it('survives the birthdate field being cleared', () => {
+    const { container } = renderSettings()
     openDialog()
     const input = screen.getByLabelText('Birthdate')
 
@@ -40,20 +78,39 @@ describe('SettingsDialog', () => {
       fireEvent.change(input, { target: { value: '' } })
     }).not.toThrow()
 
-    // The last valid date is kept rather than becoming an Invalid Date.
+    // The draft empties, but nothing invalid reaches the calendar.
+    expect(input).toHaveValue('')
+    expect(container.textContent).not.toContain('NaN')
+
+    // Leaving the field restores the last date that actually parsed.
+    fireEvent.blur(input)
     expect(input).toHaveValue('2000-01-01')
   })
 
-  it('ignores a partially typed birthdate', () => {
+  it('keeps a half-typed birthdate out of the calendar until it parses', () => {
+    const { container } = renderSettings()
+    openDialog()
+    const input = screen.getByLabelText('Birthdate')
+
+    fireEvent.change(input, { target: { value: '1993-05' } })
+    expect(input).toHaveValue('1993-05')
+    // Still showing the committed 2000-01-01 birthdate, not a partial one.
+    expect(container.textContent).not.toContain('NaN')
+
+    fireEvent.change(input, { target: { value: '0002-01-01' } })
+    expect(input).toHaveValue('0002-01-01')
+  })
+
+  it('rejects a date that does not exist', () => {
     renderSettings()
     openDialog()
     const input = screen.getByLabelText('Birthdate')
 
-    fireEvent.change(input, { target: { value: '0002-01-01' } })
-    expect(input).toHaveValue('0002-01-01')
-
-    fireEvent.change(input, { target: { value: '' } })
-    expect(input).toHaveValue('0002-01-01')
+    fireEvent.change(input, { target: { value: '20230231' } })
+    expect(input).toHaveValue('2023-02-31')
+    fireEvent.blur(input)
+    // Snapped back rather than accepting February 31st.
+    expect(input).toHaveValue('2000-01-01')
   })
 
   it('clamps the life expectancy to the allowed range', () => {
