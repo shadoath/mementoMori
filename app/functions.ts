@@ -101,6 +101,67 @@ export const formatDateInput = (date: Date) =>
     date.getMonth() + 1
   )}-${pad(date.getDate())}`
 
+/**
+ * Punctuates eight bare digits as YYYY-MM-DD, so 19851231 becomes 1985-12-31.
+ *
+ * Renumbers the segments from the digits alone, so it is only meaningful for a
+ * complete entry — never apply it to a value mid-edit, where `1993--14` (month
+ * deleted) would become `1993-14`. Used by {@link normalizeDateInput}.
+ */
+const formatDateDraft = (raw: string) => {
+  const digits = raw.replace(/\D/g, '').slice(0, 8)
+
+  return [digits.slice(0, 4), digits.slice(4, 6), digits.slice(6, 8)]
+    .filter(Boolean)
+    .join('-')
+}
+
+/**
+ * Reads a finished but sloppy entry — single-digit segments, bare digits — and
+ * returns the date it meant. Null when it can't be salvaged, so a real typo
+ * still gets rejected rather than silently reinterpreted.
+ */
+export const normalizeDateInput = (raw: string): Date | null => {
+  const trimmed = raw.trim()
+  if (trimmed === '') {
+    return null
+  }
+
+  const direct = parseDateInput(trimmed)
+  if (direct) {
+    return direct
+  }
+
+  // 1993-5-4 -> 1993-05-04. The year is never padded: "993-5-4" is a missing
+  // digit, and padding it would silently commit the year 993.
+  const segments = trimmed.split('-')
+  if (
+    segments.length === 3 &&
+    /^\d{4}$/.test(segments[0]) &&
+    /^\d{1,2}$/.test(segments[1]) &&
+    /^\d{1,2}$/.test(segments[2])
+  ) {
+    const parsed = parseDateInput(
+      `${segments[0]}-${segments[1].padStart(2, '0')}-${segments[2].padStart(
+        2,
+        '0'
+      )}`
+    )
+    if (parsed) {
+      return parsed
+    }
+  }
+
+  // 19851231 -> 1985-12-31. Only for exactly eight bare digits: formatDateDraft
+  // discards everything else and truncates, so "198512311" would quietly lose
+  // its last digit and "2000-0x1-01" would become a date nobody typed.
+  if (/^\d{8}$/.test(trimmed)) {
+    return parseDateInput(formatDateDraft(trimmed))
+  }
+
+  return null
+}
+
 /** Returns null for partial or nonsense input, e.g. a cleared date field. */
 export const parseDateInput = (value: string): Date | null => {
   const match = /^(\d{4})-(\d{2})-(\d{2})$/.exec(value)

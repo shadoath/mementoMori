@@ -18,7 +18,11 @@ import {
 } from '@mui/material'
 import { useEffect, useMemo, useState } from 'react'
 import { createAppTheme } from '../theme'
-import { formatDateInput, parseDateInput } from '../../app/functions'
+import {
+  formatDateInput,
+  normalizeDateInput,
+  parseDateInput,
+} from '../../app/functions'
 import {
   DEFAULT_EVENT_COLOR,
   MAX_LIFE_EXPECTANCY,
@@ -40,6 +44,59 @@ const cornerControlSx = (side: 'left' | 'right') => ({
   '&:hover': { color: 'var(--ink)' },
 })
 
+/**
+ * A date field that shows YYYY-MM-DD regardless of browser locale, which
+ * `type="date"` cannot: Chrome takes that format from the browser's own
+ * language preference and ignores the element's `lang`.
+ */
+const DateField = ({
+  label,
+  value,
+  onDraftChange,
+  onSettle,
+  size,
+}: {
+  label: string
+  value: string
+  onDraftChange: (next: string) => void
+  onSettle: () => void
+  size?: 'small' | 'medium'
+}) => {
+  const [focused, setFocused] = useState(false)
+  // Only complain once they've stopped typing; a half-entered date is not yet
+  // a mistake, and a field that is red from the first keystroke trains people
+  // to ignore it.
+  const invalid = !focused && value !== '' && parseDateInput(value) === null
+
+  return (
+    <TextField
+      fullWidth
+      size={size}
+      label={label}
+      placeholder='YYYY-MM-DD'
+      InputLabelProps={{ shrink: true }}
+      inputProps={{ inputMode: 'numeric' }}
+      value={value}
+      error={invalid}
+      helperText={invalid ? 'Use YYYY-MM-DD' : undefined}
+      onFocus={() => {
+        setFocused(true)
+      }}
+      // Deliberately not reformatted keystroke by keystroke. Rewriting a
+      // controlled value mid-edit renumbers the segments and throws the caret
+      // to the end, and a fixed-width mask can't accept the single-digit month
+      // in "2001-3-7". The value is tidied on blur instead.
+      onChange={(e) => {
+        onDraftChange(e.target.value)
+      }}
+      onBlur={() => {
+        setFocused(false)
+        onSettle()
+      }}
+    />
+  )
+}
+
 export const SettingsDialog = () => {
   const {
     birthdate,
@@ -53,6 +110,9 @@ export const SettingsDialog = () => {
   } = useBaseContext()
 
   const [showSettings, setShowSettings] = useState(isFirstVisit)
+  const [birthdateDraft, setBirthdateDraft] = useState(() =>
+    formatDateInput(birthdate)
+  )
   const [expectancyDraft, setExpectancyDraft] = useState(String(lifeExpectancy))
   const [eventDate, setEventDate] = useState('')
   const [eventDescription, setEventDescription] = useState('')
@@ -65,14 +125,33 @@ export const SettingsDialog = () => {
   )
 
   useEffect(() => {
+    setBirthdateDraft(formatDateInput(birthdate))
+  }, [birthdate])
+
+  useEffect(() => {
     setExpectancyDraft(String(lifeExpectancy))
   }, [lifeExpectancy])
+
+  const settleBirthdate = () => {
+    const normalized = normalizeDateInput(birthdateDraft)
+    if (normalized) {
+      setBirthdate(normalized)
+      setBirthdateDraft(formatDateInput(normalized))
+    } else if (birthdateDraft.trim() === '') {
+      setBirthdateDraft(formatDateInput(birthdate))
+    }
+    // An unsalvageable entry is left in place rather than silently reverted,
+    // so the error stays on screen instead of vanishing at the moment it
+    // would have told them something.
+  }
 
   const handleClose = () => {
     setShowSettings(false)
   }
 
-  const parsedEventDate = parseDateInput(eventDate)
+  // Normalize rather than strict-parse, so "2010-6-15" can be added without
+  // having to leave the field first.
+  const parsedEventDate = normalizeDateInput(eventDate)
   const canAddEvent = parsedEventDate !== null && eventDescription.trim() !== ''
 
   const handleAddEvent = () => {
@@ -106,19 +185,15 @@ export const SettingsDialog = () => {
         <DialogContent style={{ minWidth: 300 }}>
           <Grid sx={{ mt: 1 }} container spacing={2}>
             <Grid item xs={12} sm={6}>
-              <TextField
-                type='date'
-                fullWidth
+              <DateField
                 label='Birthdate'
-                InputLabelProps={{ shrink: true }}
-                value={formatDateInput(birthdate)}
-                onChange={(e) => {
-                  // Clearing the field yields '', which is not a date.
-                  const parsed = parseDateInput(e.target.value)
-                  if (parsed) {
-                    setBirthdate(parsed)
-                  }
-                }}
+                value={birthdateDraft}
+                // Nothing is committed until the field settles. Committing per
+                // keystroke would save the valid prefix of "1993-05-141"
+                // before the last character arrived, so the entry would show an
+                // error while having already replaced the birthdate.
+                onDraftChange={setBirthdateDraft}
+                onSettle={settleBirthdate}
               />
             </Grid>
             <Grid item xs={12} sm={6}>
@@ -153,15 +228,16 @@ export const SettingsDialog = () => {
           </Typography>
           <Grid container spacing={1} alignItems='center'>
             <Grid item xs={12} sm={5}>
-              <TextField
-                type='date'
-                fullWidth
-                size='small'
+              <DateField
                 label='Date'
-                InputLabelProps={{ shrink: true }}
+                size='small'
                 value={eventDate}
-                onChange={(e) => {
-                  setEventDate(e.target.value)
+                onDraftChange={setEventDate}
+                onSettle={() => {
+                  const normalized = normalizeDateInput(eventDate)
+                  if (normalized) {
+                    setEventDate(formatDateInput(normalized))
+                  }
                 }}
               />
             </Grid>

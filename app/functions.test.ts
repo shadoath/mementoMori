@@ -10,6 +10,7 @@ import {
   getWeeksLeft,
   getYearsToDisplay,
   isValidDate,
+  normalizeDateInput,
   parseDateInput,
   startOfDay,
 } from './functions'
@@ -121,6 +122,52 @@ describe('parseDateInput', () => {
     expect(parseDateInput('2023-02-31')).toBeNull()
     expect(parseDateInput('2023-02-29')).toBeNull()
     expect(parseDateInput('2024-02-29')).not.toBeNull()
+  })
+})
+
+describe('normalizeDateInput', () => {
+  const iso = (d: Date | null) => (d ? formatDateInput(d) : null)
+
+  it('pads single-digit segments', () => {
+    expect(iso(normalizeDateInput('1993-5-4'))).toBe('1993-05-04')
+    expect(iso(normalizeDateInput('1993-05-4'))).toBe('1993-05-04')
+    expect(iso(normalizeDateInput('1993-5-14'))).toBe('1993-05-14')
+  })
+
+  it('accepts bare digits', () => {
+    expect(iso(normalizeDateInput('19851231'))).toBe('1985-12-31')
+  })
+
+  it('accepts an already correct date', () => {
+    expect(iso(normalizeDateInput('2000-01-01'))).toBe('2000-01-01')
+    expect(iso(normalizeDateInput('  2000-01-01  '))).toBe('2000-01-01')
+  })
+
+  it('will not salvage a typo by discarding characters', () => {
+    // One digit too many is a mistake, not a date with a spare digit.
+    expect(normalizeDateInput('198512311')).toBeNull()
+    expect(normalizeDateInput('1985123')).toBeNull()
+    expect(normalizeDateInput('2000-0x1-01')).toBeNull()
+    expect(normalizeDateInput('1985/12/31')).toBeNull()
+  })
+
+  it('never pads the year, which would invent a different one', () => {
+    // A missing digit is a typo, not the year 993.
+    expect(normalizeDateInput('993-5-4')).toBeNull()
+    expect(normalizeDateInput('93-05-04')).toBeNull()
+    expect(normalizeDateInput('1993-005-04')).toBeNull()
+  })
+
+  it('refuses to guess at a date that cannot exist', () => {
+    expect(normalizeDateInput('2023-02-31')).toBeNull()
+    expect(normalizeDateInput('1993-13-01')).toBeNull()
+    expect(normalizeDateInput('')).toBeNull()
+    expect(normalizeDateInput('nonsense')).toBeNull()
+  })
+
+  it('does not rescue a half-deleted date by renumbering it', () => {
+    // 2000--01 means "the month is gone", not "January 2000".
+    expect(normalizeDateInput('2000--01')).toBeNull()
   })
 })
 
