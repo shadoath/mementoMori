@@ -64,6 +64,21 @@ describe('Calendar', () => {
     expect(document.getElementById('2000-4-1')).not.toHaveClass('invisible')
   })
 
+  it('marks pre-birth squares both filled and invisible', () => {
+    // Squares before the birthdate carry `filled` too, because their end date
+    // has passed. globals.css must therefore exclude `.invisible` from the
+    // fill rule, or the blank pre-birth run renders as lived weeks. jsdom
+    // doesn't apply the stylesheet, so this pins the class pairing the CSS
+    // depends on; the rendered result is checked in the browser.
+    vi.setSystemTime(new Date(2020, 0, 10, 12))
+    window.localStorage.setItem('birthdate', '2000-06-15')
+    renderCalendar()
+
+    const preBirth = document.getElementById('2000-1-1')
+    expect(preBirth).toHaveClass('filled')
+    expect(preBirth).toHaveClass('invisible')
+  })
+
   it('marks weeks lived beyond the life expectancy as extra', () => {
     vi.setSystemTime(new Date(2011, 0, 10, 12))
     window.localStorage.setItem('lifeExpectancy', '10')

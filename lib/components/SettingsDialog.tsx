@@ -26,6 +26,20 @@ import {
   useBaseContext,
 } from '../../context/BaseContext'
 
+/**
+ * Positioned through sx rather than globals.css: MUI's ButtonBase sets
+ * `position: relative` from a runtime stylesheet that outranks an
+ * equal-specificity rule in a static file, which would drop both controls out
+ * of the corners and into the flow below the calendar.
+ */
+const cornerControlSx = (side: 'left' | 'right') => ({
+  position: 'fixed' as const,
+  bottom: '0.75rem',
+  [side]: '0.75rem',
+  color: 'var(--ink-soft)',
+  '&:hover': { color: 'var(--ink)' },
+})
+
 export const SettingsDialog = () => {
   const {
     birthdate,
@@ -79,7 +93,8 @@ export const SettingsDialog = () => {
     <ThemeProvider theme={theme}>
       <IconButton
         aria-label='Settings'
-        className='corner-control corner-control-settings'
+        className='corner-control'
+        sx={cornerControlSx('right')}
         onClick={() => {
           setShowSettings(!showSettings)
         }}
@@ -230,7 +245,8 @@ export const SettingsDialog = () => {
       </Dialog>
       <IconButton
         aria-label='View source on GitHub'
-        className='corner-control corner-control-source'
+        className='corner-control'
+        sx={cornerControlSx('left')}
         onClick={() => {
           window.open('https://github.com/shadoath/mementoMori')
         }}

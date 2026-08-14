@@ -9,14 +9,16 @@
 
   /* The grid. Everything derives from one cell size, so the whole
      calendar scales without a single breakpoint. */
-  --cell: clamp(3.6px, 1.05vw, 7px);
+  /* The floor has to clear a ten-year row plus gutter inside the narrowest
+     real viewports — folded phones and split-screen panels near 280px. */
+  --cell: clamp(2.8px, 1.05vw, 7px);
   --cell-gap: calc(var(--cell) * 0.34);
   --year-gap: calc(var(--cell) * 2);
   --decade-gap: calc(var(--cell) * 3.6);
   --gutter: calc(var(--cell) * 7.5);
 
   --measure: 34rem;
-  --edge: clamp(1.25rem, 5vw, 3rem);
+  --edge: clamp(0.75rem, 5vw, 3rem);
 }
 
 @media (prefers-color-scheme: dark) {
@@ -139,18 +141,21 @@ body {
   width: var(--cell);
 }
 
-.week-cell.filled {
+/* :not(.invisible) on both: every square before the birthdate is also "filled"
+   by date, and must stay blank rather than reading as a lived week. */
+.week-cell.filled:not(.invisible) {
   background-color: var(--ink-soft);
   border-color: var(--ink-soft);
 }
 
 /* Lived past the life expectancy. Always paired with .filled. */
-.week-cell.filled.extra {
+.week-cell.filled.extra:not(.invisible) {
   background-color: var(--ink);
   border-color: var(--ink);
 }
 
 .week-cell.invisible {
+  background-color: transparent;
   border-color: transparent;
 }
 
@@ -284,25 +289,9 @@ body {
   text-transform: uppercase;
 }
 
-/* ── Corner controls ──────────────────────────────────────── */
-
-.corner-control {
-  color: var(--ink-soft);
-  position: fixed;
-  bottom: 0.75rem;
-}
-
-.corner-control:hover {
-  color: var(--ink);
-}
-
-.corner-control-settings {
-  right: 0.75rem;
-}
-
-.corner-control-source {
-  left: 0.75rem;
-}
+/* Corner controls are positioned in sx, not here: MUI's ButtonBase injects
+   its own `position: relative` at equal specificity but later in the
+   cascade, so a rule in this file loses. The class is kept for @media print. */
 
 /* ── Tooltips ─────────────────────────────────────────────── */
 
@@ -322,8 +311,12 @@ body {
   letter-spacing: 0.02em;
   padding: 0.3rem 0.5rem;
   position: absolute;
+  /* Descriptions have no length limit, so cap the line and let it wrap rather
+     than running off the side of a phone. */
+  max-width: min(15rem, 60vw);
+  text-align: center;
   transform: translateX(-50%);
-  white-space: nowrap;
+  white-space: normal;
   width: max-content;
   z-index: 20;
 }
