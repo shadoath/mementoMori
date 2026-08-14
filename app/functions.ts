@@ -6,13 +6,25 @@ export const SQUARES_PER_MONTH = 4
 
 export const isValidDate = (date: Date) => !Number.isNaN(date.getTime())
 
+/**
+ * Local midnight for a year/month/day, avoiding the Date constructor's habit of
+ * reading a year under 100 as 19xx — which would quietly turn a birth year of
+ * 0002 into 1902 and mark the first century of the calendar as lived.
+ */
+const localDate = (year: number, monthIndex: number, day: number) => {
+  const date = new Date(0)
+  date.setFullYear(year, monthIndex, day)
+  date.setHours(0, 0, 0, 0)
+  return date
+}
+
 /** Midnight local time, so day-granularity comparisons ignore the clock. */
 export const startOfDay = (date: Date) =>
-  new Date(date.getFullYear(), date.getMonth(), date.getDate())
+  localDate(date.getFullYear(), date.getMonth(), date.getDate())
 
 /** `month` is 1-indexed. */
 export const getDaysInMonth = (month: number, year: number) => {
-  return new Date(year, month, 0).getDate()
+  return localDate(year, month, 0).getDate()
 }
 
 /**
@@ -26,7 +38,7 @@ export const getSquareEndDate = (
   square: number
 ) => {
   const daysPerSquare = getDaysInMonth(monthIndex + 1, year) / SQUARES_PER_MONTH
-  return new Date(year, monthIndex, Math.floor((square + 1) * daysPerSquare))
+  return localDate(year, monthIndex, Math.floor((square + 1) * daysPerSquare))
 }
 
 export const getWeekId = (year: number, monthIndex: number, square: number) =>
@@ -105,12 +117,7 @@ export const parseDateInput = (value: string): Date | null => {
   const year = Number(match[1])
   const month = Number(match[2])
   const day = Number(match[3])
-
-  // setFullYear rather than the Date constructor, which reads a year under 100
-  // as 19xx — a half-typed "0002" would otherwise become 1902.
-  const date = new Date(0)
-  date.setFullYear(year, month - 1, day)
-  date.setHours(0, 0, 0, 0)
+  const date = localDate(year, month - 1, day)
 
   // Rejects overflow like 2023-02-31, which Date rolls forward into March.
   if (

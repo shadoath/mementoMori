@@ -99,7 +99,11 @@ body {
   opacity: 0.8;
 }
 
-.life-event-off-calendar {
+/* Dims the row's data but not the note explaining why it's dim — opacity on
+   the row would multiply down and leave the explanation the faintest thing. */
+.life-event-off-calendar .life-event-swatch,
+.life-event-off-calendar time,
+.life-event-off-calendar .life-event-description {
   opacity: 0.55;
 }
 

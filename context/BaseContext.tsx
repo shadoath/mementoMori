@@ -119,7 +119,9 @@ const BaseContextProvider = ({ children }: { children: React.ReactNode }) => {
       ? storedBirthdate
       : defaultBirthdate
   const lifeExpectancy = clampLifeExpectancy(storedLifeExpectancy)
-  const lifeEvents = storedLifeEvents ?? []
+  // Memoised so the fallback doesn't hand out a new array identity on every
+  // render and defeat every downstream memo.
+  const lifeEvents = useMemo(() => storedLifeEvents ?? [], [storedLifeEvents])
 
   const setBirthdate = useCallback(
     (date: Date) => {

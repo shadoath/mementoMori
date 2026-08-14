@@ -157,6 +157,20 @@ describe('getYearsToDisplay', () => {
   })
 })
 
+describe('years under 100', () => {
+  it('keeps them where they were written instead of mapping to 19xx', () => {
+    // Year 0 is a leap year, 1900 is not — so this discriminates.
+    expect(getDaysInMonth(2, 0)).toBe(29)
+    expect(getSquareEndDate(2, 0, 0).getFullYear()).toBe(2)
+    expect(startOfDay(parseDateInput('0002-01-01') as Date).getFullYear()).toBe(
+      2
+    )
+    expect(getSquareEndDateForDate(new Date(1902, 0, 1)).getFullYear()).toBe(
+      1902
+    )
+  })
+})
+
 describe('getSquareEndDateForDate', () => {
   it('returns the end of the square the date falls in', () => {
     // May has 31 days: squares close on the 7th, 15th, 23rd and 31st.
