@@ -73,6 +73,45 @@ body {
   transform: translateX(5px);
 }
 
+.life-events {
+  list-style: none;
+  margin: 12px auto;
+  padding: 0;
+}
+
+.life-event {
+  align-items: center;
+  display: flex;
+  gap: 0.6rem;
+  padding: 2px 0;
+}
+
+.life-event-swatch {
+  border: 1px solid var(--color-dark-gray);
+  display: inline-block;
+  flex: none;
+  height: 8px;
+  margin-right: 0.6rem;
+  width: 8px;
+}
+
+.life-event-description {
+  opacity: 0.8;
+}
+
+/* Dims the row's data but not the note explaining why it's dim — opacity on
+   the row would multiply down and leave the explanation the faintest thing. */
+.life-event-off-calendar .life-event-swatch,
+.life-event-off-calendar time,
+.life-event-off-calendar .life-event-description {
+  opacity: 0.55;
+}
+
+.life-event-note {
+  font-style: italic;
+  opacity: 0.7;
+}
+
 @media screen {
   .calendar {
     justify-content: center;
@@ -93,7 +132,8 @@ body {
   background-color: var(--color-dark-gray-filled);
   border-color: var(--color-dark-gray-filled);
 }
-.week-cell.extra:not(.filled) {
+/* Weeks lived past the life expectancy. Always paired with .filled. */
+.week-cell.filled.extra:not(.invisible) {
   background-color: var(--color-dark-gray-extra-filled);
   border-color: var(--color-dark-gray-extra-filled);
 }

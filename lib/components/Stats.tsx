@@ -1,24 +1,26 @@
-import { useBaseContext } from '../../context/BaseContext'
-import { getWeeksLeft } from '../../app/functions'
 import { useMemo } from 'react'
+import { getWeeksLeft } from '../../app/functions'
+import { useBaseContext } from '../../context/BaseContext'
 
 export const Stats = () => {
-  const { birthdate, lifeExpectancy } = useBaseContext()
-  const totalWeeksInLife = lifeExpectancy * 52 // Calculate total weeks in life based on life expectancy
+  const { birthdate, lifeExpectancy, totalWeeksInLife } = useBaseContext()
 
-  const { percentOfLifeLived, weeksLeft } = useMemo(() => {
-    const weeksLeft = getWeeksLeft(birthdate, totalWeeksInLife)
-    const weeksLived = totalWeeksInLife - weeksLeft
-    const percentOfLifeLived = Math.round((weeksLived / totalWeeksInLife) * 100)
-    return { percentOfLifeLived, weeksLeft }
+  const { totalWeeks, weeksLived, percentOfLifeLived } = useMemo(() => {
+    const totalWeeks = Math.ceil(totalWeeksInLife)
+    const weeksLeft = Math.ceil(getWeeksLeft(birthdate, totalWeeksInLife))
+    // Clamped at zero so a birthdate in the future doesn't read as negative.
+    const weeksLived = Math.max(0, totalWeeks - weeksLeft)
+
+    return {
+      totalWeeks,
+      weeksLived,
+      percentOfLifeLived: Math.round((weeksLived / totalWeeks) * 100),
+    }
   }, [birthdate, totalWeeksInLife])
 
   return (
     <div id='stats' className='stats wrapper'>
-      {weeksLeft !== null &&
-        `${
-          Math.ceil(totalWeeksInLife) - Math.ceil(weeksLeft)
-        } weeks lived of ${Math.ceil(totalWeeksInLife)} total weeks`}
+      {weeksLived} weeks lived of {totalWeeks} total weeks
       <br />
       {percentOfLifeLived}% of {lifeExpectancy} years lived.
     </div>

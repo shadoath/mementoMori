@@ -1,28 +1,54 @@
-import { type LifeEvent, useBaseContext } from '../../context/BaseContext'
-import { getWeekIdFromDate } from '../../app/functions'
+import { formatDateInput, getYearsToDisplay } from '../../app/functions'
+import { MAX_LIFE_EXPECTANCY, useBaseContext } from '../../context/BaseContext'
 
 export const EventList = () => {
-  const { lifeEvents } = useBaseContext()
-  const writeLifeEvent = (lifeEvent: LifeEvent) => {
-    const id = getWeekIdFromDate(lifeEvent.date)
-    const weekDiv = document.getElementById(id)
+  const { birthdate, lifeExpectancy, lifeEvents } = useBaseContext()
 
-    if (weekDiv == null || weekDiv.classList.contains('invisible')) {
-      const y = lifeEvent.date.getFullYear()
-      const m = lifeEvent.date.getMonth() + 1
-      const d = lifeEvent.date.getDate()
-      console.error(
-        `Event '${lifeEvent.description}' has an invalid date (${y}-${m}-${d})`
-      )
-      return
-    }
+  if (lifeEvents.length === 0) {
+    return null
   }
+
+  const lastYear =
+    birthdate.getFullYear() +
+    getYearsToDisplay(birthdate, lifeExpectancy, MAX_LIFE_EXPECTANCY)
+
+  // Mirrors the calendar: nothing is drawn before the birthdate, and there is
+  // no square at all past the last year drawn.
+  const isOnCalendar = (date: Date) =>
+    date >= birthdate && date.getFullYear() <= lastYear
+
+  const sorted = [...lifeEvents].sort(
+    (a, b) => a.date.getTime() - b.date.getTime()
+  )
+
   return (
-    <div id='life-events' className='stats wrapper'>
-      {lifeEvents.map((e) => {
-        writeLifeEvent(e)
-        return null
+    <ul id='life-events' className='life-events wrapper'>
+      {sorted.map((event, i) => {
+        const onCalendar = isOnCalendar(event.date)
+
+        return (
+          <li
+            className={`life-event ${onCalendar ? '' : 'life-event-off-calendar'}`}
+            key={`${formatDateInput(event.date)}-${i}`}
+          >
+            <span
+              aria-hidden='true'
+              className='life-event-swatch'
+              style={{ backgroundColor: event.color }}
+            />
+            <time dateTime={formatDateInput(event.date)}>
+              {formatDateInput(event.date)}
+            </time>
+            <span className='life-event-description'>
+              {event.icon ? `${event.icon} ` : ''}
+              {event.description}
+            </span>
+            {!onCalendar && (
+              <span className='life-event-note'>outside the calendar</span>
+            )}
+          </li>
+        )
       })}
-    </div>
+    </ul>
   )
 }

@@ -1,20 +1,45 @@
-import { useBaseContext } from '../../context/BaseContext'
+import { useMemo } from 'react'
+import { getWeekIdFromDate, getYearsToDisplay } from '../../app/functions'
+import {
+  type LifeEvent,
+  MAX_LIFE_EXPECTANCY,
+  useBaseContext,
+} from '../../context/BaseContext'
 import { YearBlock } from './YearBlock'
 
 export const Calendar = () => {
-  const { birthdate, lifeExpectancy } = useBaseContext()
+  const { birthdate, lifeExpectancy, lifeEvents } = useBaseContext()
   const baseYear = birthdate.getFullYear()
-  const yearsAlive = new Date().getFullYear() - baseYear
-  let totalYearsToDisplay = lifeExpectancy
-  if (yearsAlive > lifeExpectancy) {
-    // extend calendar if we're past the life expectancy
-    totalYearsToDisplay = yearsAlive
-  }
-  const years: JSX.Element[] = []
+  const totalYearsToDisplay = getYearsToDisplay(
+    birthdate,
+    lifeExpectancy,
+    MAX_LIFE_EXPECTANCY
+  )
 
-  for (let i = 0; i <= totalYearsToDisplay; i++) {
-    years.push(<YearBlock yearCount={i} />)
-  }
+  const eventsByWeek = useMemo(() => {
+    const byWeek = new Map<string, LifeEvent[]>()
+    for (const event of lifeEvents) {
+      // An event a few days before the birthdate shares a square with it, so
+      // the square is visible — but the event still predates the life.
+      if (event.date < birthdate) {
+        continue
+      }
+
+      const weekId = getWeekIdFromDate(event.date)
+      const existing = byWeek.get(weekId)
+      if (existing) {
+        existing.push(event)
+      } else {
+        byWeek.set(weekId, [event])
+      }
+    }
+    return byWeek
+  }, [lifeEvents, birthdate])
+
+  // `<=` so the final, partial year of life still gets a block.
+  const years = Array.from({ length: totalYearsToDisplay + 1 }, (_, i) => (
+    <YearBlock key={baseYear + i} yearCount={i} eventsByWeek={eventsByWeek} />
+  ))
 
   return (
     <div className='calendar' id='calendar'>
