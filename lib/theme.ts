@@ -19,6 +19,9 @@ export const createAppTheme = (mode: 'light' | 'dark') =>
         secondary: mode === 'dark' ? '#8d929a' : '#5a5f66',
       },
       divider: mode === 'dark' ? '#2b2f35' : '#cbc9c2',
+      // MUI's IconButton sets `color: action.active` from its own runtime
+      // stylesheet, which outranks an equal-specificity rule in globals.css.
+      action: { active: mode === 'dark' ? '#8d929a' : '#5a5f66' },
     },
     shape: { borderRadius: 0 },
     typography: {

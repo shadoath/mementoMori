@@ -22,7 +22,7 @@ export const EventList = () => {
   )
 
   return (
-    <ul id='life-events' className='life-events wrapper'>
+    <ul id='life-events' className='life-events'>
       {sorted.map((event, i) => {
         const onCalendar = isOnCalendar(event.date)
 

@@ -29,7 +29,7 @@ export const YearBlock = ({
     birthdate.getTime() + lifeExpectancy * WEEKS_PER_YEAR * MS_PER_WEEK
 
   return (
-    <div className='year-cell' title={`${year} · age ${yearCount}`}>
+    <div className='year-cell'>
       {Array.from({ length: MONTHS_PER_YEAR }, (_, monthIndex) => (
         <div className='month-cell' key={monthIndex}>
           {Array.from({ length: SQUARES_PER_MONTH }, (_, square) => {
@@ -65,8 +65,10 @@ export const YearBlock = ({
                 ]
                   .filter(Boolean)
                   .join(' ')}
+                // An event keeps its own colour even in the current week; the
+                // rubric ring still marks it, so neither signal is lost.
                 style={
-                  events && !isCurrent
+                  events
                     ? {
                         backgroundColor: events[0].color,
                         borderColor: events[0].color,
@@ -74,6 +76,10 @@ export const YearBlock = ({
                     : undefined
                 }
                 data-tooltip={tooltip}
+                // data-tooltip is a CSS affordance, so a marked square needs a
+                // real name to be worth stopping on.
+                role={tooltip ? 'img' : undefined}
+                aria-label={tooltip}
                 tabIndex={tooltip ? 0 : undefined}
               />
             )

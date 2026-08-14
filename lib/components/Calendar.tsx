@@ -50,7 +50,14 @@ export const Calendar = () => {
   return (
     <div className='calendar' id='calendar'>
       {decades.map((decade) => (
-        <div className='decade' key={decade[0]}>
+        <div
+          className='decade'
+          key={decade[0]}
+          role='group'
+          aria-label={`Ages ${decade[0]} to ${decade[decade.length - 1]}, ${
+            baseYear + decade[0]
+          } to ${baseYear + decade[decade.length - 1]}`}
+        >
           <div className='decade-mark'>
             <span className='decade-age'>{decade[0]}</span>
             <span className='decade-year'>{baseYear + decade[0]}</span>

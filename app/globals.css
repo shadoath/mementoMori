@@ -388,8 +388,7 @@ body {
     padding: 0;
   }
 
-  .week-cell,
-  .measure-current .measure-value {
+  .week-cell {
     -webkit-print-color-adjust: exact;
     print-color-adjust: exact;
   }

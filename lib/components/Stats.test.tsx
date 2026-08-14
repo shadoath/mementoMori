@@ -43,7 +43,9 @@ describe('Stats', () => {
     const text = container.textContent ?? ''
 
     expect(text).toContain('0%')
-    expect(text).toContain('2,241')
+    // Never more remaining than the grid draws, even before life starts.
+    expect(text).toContain('2,191')
+    expect(text).not.toContain('2,241')
     expect(text).not.toContain('-')
   })
 
@@ -56,6 +58,8 @@ describe('Stats', () => {
     // 10 * 52.1429 = 522, so 700 weeks in there is nothing left to spend.
     expect(text).toContain('700')
     expect(text).toContain('0weeks remaining')
+    // Outliving the estimate is reported rather than capped at 100%.
+    expect(text).toContain('134%')
     expect(text).not.toContain('-')
   })
 

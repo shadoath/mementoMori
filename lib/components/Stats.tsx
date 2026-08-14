@@ -8,15 +8,16 @@ export const Stats = () => {
   const { weeksLived, weeksRemaining, percentSpent } = useMemo(() => {
     const totalWeeks = Math.ceil(totalWeeksInLife)
     const weeksLeft = Math.ceil(getWeeksLeft(birthdate, totalWeeksInLife))
+    // Clamped at zero so a birthdate in the future doesn't read as negative.
+    const lived = Math.max(0, totalWeeks - weeksLeft)
 
     return {
-      // Clamped so a birthdate in the future doesn't read as negative, and an
-      // outlived expectancy doesn't promise weeks that are already spent.
-      weeksLived: Math.max(0, totalWeeks - weeksLeft),
-      weeksRemaining: Math.max(0, weeksLeft),
-      percentSpent: Math.round(
-        (Math.max(0, totalWeeks - weeksLeft) / totalWeeks) * 100
-      ),
+      weeksLived: lived,
+      // Never fewer than none, never more than the grid actually draws.
+      weeksRemaining: Math.min(totalWeeks, Math.max(0, weeksLeft)),
+      // Deliberately uncapped: outliving the estimate is the one number on
+      // this page worth seeing go past 100.
+      percentSpent: Math.round((lived / totalWeeks) * 100),
     }
   }, [birthdate, totalWeeksInLife])
 

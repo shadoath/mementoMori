@@ -141,6 +141,44 @@ describe('Calendar', () => {
     )
   })
 
+  it('keeps an event visible when it lands in the current week', () => {
+    vi.setSystemTime(new Date(2020, 0, 10, 12))
+    window.localStorage.setItem(
+      'lifeEvents',
+      JSON.stringify([
+        { date: '2020-01-10', description: 'Today', color: '#00ff00' },
+      ])
+    )
+    renderCalendar()
+
+    const cell = document.getElementById('2020-1-2')
+    expect(cell).toHaveClass('current')
+    // The event keeps its own colour; the rubric ring still marks the week.
+    expect(cell?.getAttribute('style')).toContain('rgb(0, 255, 0)')
+    expect(cell).toHaveAttribute('data-tooltip', 'This week · Today')
+  })
+
+  it('gives a marked square an accessible name, not just a silent tab stop', () => {
+    vi.setSystemTime(new Date(2020, 0, 10, 12))
+    window.localStorage.setItem(
+      'lifeEvents',
+      JSON.stringify([
+        { date: '2000-05-14', description: 'Something', color: '#ff0000' },
+      ])
+    )
+    renderCalendar()
+
+    const cell = document.getElementById('2000-5-2')
+    expect(cell).toHaveAttribute('tabindex', '0')
+    expect(cell).toHaveAttribute('role', 'img')
+    expect(cell).toHaveAccessibleName('Something')
+
+    // Unmarked squares stay out of the tab order entirely.
+    const plain = document.getElementById('2000-5-1')
+    expect(plain).not.toHaveAttribute('tabindex')
+    expect(plain).not.toHaveAttribute('role')
+  })
+
   it('does not paint an event onto a square before the birthdate', () => {
     vi.setSystemTime(new Date(2020, 0, 10, 12))
     window.localStorage.setItem('birthdate', '2000-06-15')
