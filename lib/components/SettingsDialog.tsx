@@ -10,6 +10,7 @@ import {
   IconButton,
   List,
   ListItem,
+  ListItemIcon,
   ListItemText,
   TextField,
   Typography,
@@ -298,11 +299,16 @@ export const SettingsDialog = () => {
                     </IconButton>
                   }
                 >
-                  <span
-                    aria-hidden='true'
-                    className='life-event-swatch'
-                    style={{ backgroundColor: event.color }}
-                  />
+                  {/* ListItemIcon rather than a bare span: it supplies the
+                      gutter and vertical centring a list row needs, which the
+                      .life-event-swatch rule alone doesn't. */}
+                  <ListItemIcon sx={{ minWidth: 20 }}>
+                    <span
+                      aria-hidden='true'
+                      className='life-event-swatch'
+                      style={{ backgroundColor: event.color }}
+                    />
+                  </ListItemIcon>
                   <ListItemText
                     primary={event.description}
                     secondary={formatDateInput(event.date)}
