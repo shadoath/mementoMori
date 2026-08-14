@@ -1,29 +1,75 @@
-import { Settings } from '@mui/icons-material'
+import { Delete, Settings } from '@mui/icons-material'
 import {
   Button,
   Dialog,
   DialogActions,
   DialogContent,
   DialogTitle,
+  Divider,
   Grid,
   IconButton,
+  List,
+  ListItem,
+  ListItemText,
   TextField,
+  Typography,
 } from '@mui/material'
-import { useState } from 'react'
-import { defaultBirthdate, useBaseContext } from '../../context/BaseContext'
+import { useEffect, useState } from 'react'
+import { formatDateInput, parseDateInput } from '../../app/functions'
+import {
+  DEFAULT_EVENT_COLOR,
+  MAX_LIFE_EXPECTANCY,
+  MIN_LIFE_EXPECTANCY,
+  useBaseContext,
+} from '../../context/BaseContext'
 
 export const SettingsDialog = () => {
-  const { birthdate, setBirthdate, lifeExpectancy, setLifeExpectancy } =
-    useBaseContext()
-  const [showSettings, setShowSettings] = useState(
-    birthdate === defaultBirthdate
-  )
+  const {
+    birthdate,
+    setBirthdate,
+    lifeExpectancy,
+    setLifeExpectancy,
+    lifeEvents,
+    addLifeEvent,
+    removeLifeEvent,
+    isFirstVisit,
+  } = useBaseContext()
+
+  const [showSettings, setShowSettings] = useState(isFirstVisit)
+  const [expectancyDraft, setExpectancyDraft] = useState(String(lifeExpectancy))
+  const [eventDate, setEventDate] = useState('')
+  const [eventDescription, setEventDescription] = useState('')
+  const [eventColor, setEventColor] = useState(DEFAULT_EVENT_COLOR)
+
+  useEffect(() => {
+    setExpectancyDraft(String(lifeExpectancy))
+  }, [lifeExpectancy])
+
   const handleClose = () => {
     setShowSettings(false)
   }
+
+  const parsedEventDate = parseDateInput(eventDate)
+  const canAddEvent = parsedEventDate !== null && eventDescription.trim() !== ''
+
+  const handleAddEvent = () => {
+    if (!parsedEventDate || !canAddEvent) {
+      return
+    }
+
+    addLifeEvent({
+      date: parsedEventDate,
+      description: eventDescription.trim(),
+      color: eventColor,
+    })
+    setEventDate('')
+    setEventDescription('')
+  }
+
   return (
     <>
       <IconButton
+        aria-label='Settings'
         onClick={() => {
           setShowSettings(!showSettings)
         }}
@@ -40,9 +86,14 @@ export const SettingsDialog = () => {
                 type='date'
                 fullWidth
                 label='Birthdate'
-                value={birthdate.toISOString().split('T')[0]}
+                InputLabelProps={{ shrink: true }}
+                value={formatDateInput(birthdate)}
                 onChange={(e) => {
-                  setBirthdate(new Date(e.target.value))
+                  // Clearing the field yields '', which is not a date.
+                  const parsed = parseDateInput(e.target.value)
+                  if (parsed) {
+                    setBirthdate(parsed)
+                  }
                 }}
               />
             </Grid>
@@ -51,16 +102,116 @@ export const SettingsDialog = () => {
                 type='number'
                 fullWidth
                 label='Life expectancy'
-                value={lifeExpectancy}
+                value={expectancyDraft}
                 onChange={(e) => {
-                  setLifeExpectancy(Number(e.target.value))
+                  setExpectancyDraft(e.target.value)
+                  if (e.target.value !== '') {
+                    setLifeExpectancy(Number(e.target.value))
+                  }
+                }}
+                onBlur={() => {
+                  setExpectancyDraft(String(lifeExpectancy))
                 }}
                 InputProps={{
-                  inputProps: { min: 1, max: 111 },
+                  inputProps: {
+                    min: MIN_LIFE_EXPECTANCY,
+                    max: MAX_LIFE_EXPECTANCY,
+                  },
                 }}
               />
             </Grid>
           </Grid>
+
+          <Divider sx={{ my: 2 }} />
+
+          <Typography variant='subtitle2' gutterBottom>
+            Life events
+          </Typography>
+          <Grid container spacing={1} alignItems='center'>
+            <Grid item xs={12} sm={5}>
+              <TextField
+                type='date'
+                fullWidth
+                size='small'
+                label='Date'
+                InputLabelProps={{ shrink: true }}
+                value={eventDate}
+                onChange={(e) => {
+                  setEventDate(e.target.value)
+                }}
+              />
+            </Grid>
+            <Grid item xs={8} sm={5}>
+              <TextField
+                fullWidth
+                size='small'
+                label='Description'
+                value={eventDescription}
+                onChange={(e) => {
+                  setEventDescription(e.target.value)
+                }}
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter') {
+                    handleAddEvent()
+                  }
+                }}
+              />
+            </Grid>
+            <Grid item xs={4} sm={2}>
+              <TextField
+                type='color'
+                fullWidth
+                size='small'
+                inputProps={{ 'aria-label': 'Event color' }}
+                value={eventColor}
+                onChange={(e) => {
+                  setEventColor(e.target.value)
+                }}
+              />
+            </Grid>
+            <Grid item xs={12}>
+              <Button
+                onClick={handleAddEvent}
+                disabled={!canAddEvent}
+                size='small'
+              >
+                Add event
+              </Button>
+            </Grid>
+          </Grid>
+
+          {lifeEvents.length > 0 && (
+            <List dense>
+              {lifeEvents.map((event, i) => (
+                <ListItem
+                  key={`${formatDateInput(event.date)}-${i}`}
+                  disableGutters
+                  secondaryAction={
+                    <IconButton
+                      edge='end'
+                      aria-label={`Remove ${event.description}`}
+                      onClick={() => {
+                        removeLifeEvent(i)
+                      }}
+                    >
+                      <Delete fontSize='small' />
+                    </IconButton>
+                  }
+                >
+                  <span
+                    aria-hidden='true'
+                    className='life-event-swatch'
+                    style={{ backgroundColor: event.color }}
+                  />
+                  <ListItemText
+                    primary={event.description}
+                    secondary={formatDateInput(event.date)}
+                  />
+                </ListItem>
+              ))}
+            </List>
+          )}
+
           <DialogActions>
             <Button onClick={handleClose} autoFocus>
               Close
@@ -69,6 +220,7 @@ export const SettingsDialog = () => {
         </DialogContent>
       </Dialog>
       <IconButton
+        aria-label='View source on GitHub'
         onClick={() => {
           window.open('https://github.com/shadoath/mementoMori')
         }}
