@@ -74,12 +74,45 @@ describe('Calendar', () => {
     expect(document.getElementById('2010-6-1')).toHaveClass('filled')
   })
 
+  it('marks the week you are actually in, and only that one', () => {
+    // The 10th falls in January's second square, which closes on the 15th.
+    vi.setSystemTime(new Date(2000, 0, 10, 12))
+    const { container } = renderCalendar()
+
+    expect(container.querySelectorAll('.current')).toHaveLength(1)
+    expect(document.getElementById('2000-1-2')).toHaveClass('current')
+    expect(document.getElementById('2000-1-2')).toHaveAttribute(
+      'data-tooltip',
+      'This week'
+    )
+  })
+
+  it('groups the years into decades with an age in the margin', () => {
+    vi.setSystemTime(new Date(2020, 0, 10, 12))
+    window.localStorage.setItem('lifeExpectancy', '42')
+    const { container } = renderCalendar()
+
+    // 43 year blocks over 10-year rows.
+    const decades = container.querySelectorAll('.decade')
+    expect(decades).toHaveLength(5)
+    expect(
+      Array.from(container.querySelectorAll('.decade-age')).map(
+        (el) => el.textContent
+      )
+    ).toEqual(['0', '10', '20', '30', '40'])
+    expect(
+      Array.from(container.querySelectorAll('.decade-year')).map(
+        (el) => el.textContent
+      )
+    ).toEqual(['2000', '2010', '2020', '2030', '2040'])
+  })
+
   it('renders a block for every year of life, plus the partial final one', () => {
     vi.setSystemTime(new Date(2020, 0, 10, 12))
     window.localStorage.setItem('lifeExpectancy', '42')
     const { container } = renderCalendar()
 
-    expect(container.querySelectorAll('.year-wrapper')).toHaveLength(43)
+    expect(container.querySelectorAll('.year-cell')).toHaveLength(43)
   })
 
   it('caps how many year blocks an implausible birthdate can ask for', () => {
@@ -87,7 +120,7 @@ describe('Calendar', () => {
     window.localStorage.setItem('birthdate', '0002-01-01')
     const { container } = renderCalendar()
 
-    expect(container.querySelectorAll('.year-wrapper')).toHaveLength(112)
+    expect(container.querySelectorAll('.year-cell')).toHaveLength(112)
   })
 
   it('places a life event on the square containing its date', () => {
@@ -182,7 +215,7 @@ describe('Calendar', () => {
     }).not.toThrow()
 
     // Falls back to the default birthdate rather than blowing up.
-    expect(container.querySelectorAll('.year-wrapper').length).toBeGreaterThan(0)
+    expect(container.querySelectorAll('.year-cell').length).toBeGreaterThan(0)
     expect(document.getElementById('2005-5-1')).toBeTruthy()
   })
 })

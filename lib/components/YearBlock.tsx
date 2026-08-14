@@ -16,9 +16,11 @@ const MONTHS_PER_YEAR = 12
 export const YearBlock = ({
   yearCount,
   eventsByWeek,
+  currentWeekId,
 }: {
   yearCount: number
   eventsByWeek: Map<string, LifeEvent[]>
+  currentWeekId: string
 }) => {
   const { birthdate, lifeExpectancy } = useBaseContext()
   const today = startOfDay(new Date())
@@ -27,56 +29,57 @@ export const YearBlock = ({
     birthdate.getTime() + lifeExpectancy * WEEKS_PER_YEAR * MS_PER_WEEK
 
   return (
-    <div className='year-wrapper'>
-      <h2 className='year-label'>{year}</h2>
-      <div className='year-cell'>
-        {Array.from({ length: MONTHS_PER_YEAR }, (_, monthIndex) => (
-          <div className='month-cell' key={monthIndex}>
-            {Array.from({ length: SQUARES_PER_MONTH }, (_, square) => {
-              const weekId = getWeekId(year, monthIndex, square)
-              const squareEnd = getSquareEndDate(year, monthIndex, square)
+    <div className='year-cell' title={`${year} · age ${yearCount}`}>
+      {Array.from({ length: MONTHS_PER_YEAR }, (_, monthIndex) => (
+        <div className='month-cell' key={monthIndex}>
+          {Array.from({ length: SQUARES_PER_MONTH }, (_, square) => {
+            const weekId = getWeekId(year, monthIndex, square)
+            const squareEnd = getSquareEndDate(year, monthIndex, square)
 
-              // Strictly before today: the square's last day has to be over
-              // before it counts as lived.
-              const isFilled = squareEnd < today
-              const isInvisible = squareEnd < birthdate
-              const isExtra = isFilled && squareEnd.getTime() > endOfExpectancy
-              // An event before the birthdate would otherwise paint a square in
-              // the blank run leading up to it.
-              const events = isInvisible ? undefined : eventsByWeek.get(weekId)
+            // Strictly before today: the square's last day has to be over
+            // before it counts as lived.
+            const isFilled = squareEnd < today
+            const isInvisible = squareEnd < birthdate
+            const isExtra = isFilled && squareEnd.getTime() > endOfExpectancy
+            const isCurrent = !isInvisible && weekId === currentWeekId
+            // An event before the birthdate would otherwise paint a square in
+            // the blank run leading up to it.
+            const events = isInvisible ? undefined : eventsByWeek.get(weekId)
 
-              return (
-                <div
-                  id={weekId}
-                  key={square}
-                  className={[
-                    'week-cell',
-                    isFilled ? 'filled' : '',
-                    isInvisible ? 'invisible' : '',
-                    isExtra ? 'extra' : '',
-                    events ? 'has-tooltip' : '',
-                  ]
-                    .filter(Boolean)
-                    .join(' ')}
-                  style={
-                    events
-                      ? {
-                          backgroundColor: events[0].color,
-                          borderColor: events[0].color,
-                        }
-                      : undefined
-                  }
-                  data-tooltip={
-                    events
-                      ? events.map((event) => event.description).join(' · ')
-                      : undefined
-                  }
-                />
-              )
-            })}
-          </div>
-        ))}
-      </div>
+            const tooltip = isCurrent
+              ? ['This week', ...(events ?? []).map((e) => e.description)].join(
+                  ' · '
+                )
+              : events?.map((event) => event.description).join(' · ')
+
+            return (
+              <div
+                id={weekId}
+                key={square}
+                className={[
+                  'week-cell',
+                  isFilled ? 'filled' : '',
+                  isInvisible ? 'invisible' : '',
+                  isExtra ? 'extra' : '',
+                  isCurrent ? 'current' : '',
+                ]
+                  .filter(Boolean)
+                  .join(' ')}
+                style={
+                  events && !isCurrent
+                    ? {
+                        backgroundColor: events[0].color,
+                        borderColor: events[0].color,
+                      }
+                    : undefined
+                }
+                data-tooltip={tooltip}
+                tabIndex={tooltip ? 0 : undefined}
+              />
+            )
+          })}
+        </div>
+      ))}
     </div>
   )
 }

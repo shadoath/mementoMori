@@ -62,10 +62,10 @@ describe('SettingsDialog', () => {
     const input = screen.getByLabelText('Life expectancy')
 
     fireEvent.change(input, { target: { value: '999' } })
-    expect(container.textContent).toContain('of 111 years lived.')
+    expect(container.textContent).toContain('of 111 years spent')
 
     fireEvent.change(input, { target: { value: '0' } })
-    expect(container.textContent).toContain('of 1 years lived.')
+    expect(container.textContent).toContain('of 1 years spent')
 
     fireEvent.blur(input)
     expect(input).toHaveValue(1)
@@ -78,7 +78,7 @@ describe('SettingsDialog', () => {
 
     fireEvent.change(input, { target: { value: '' } })
 
-    expect(container.textContent).toContain('of 42 years lived.')
+    expect(container.textContent).toContain('of 42 years spent')
     expect(container.textContent).not.toContain('NaN')
   })
 
