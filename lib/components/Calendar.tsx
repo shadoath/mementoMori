@@ -19,6 +19,12 @@ export const Calendar = () => {
   const eventsByWeek = useMemo(() => {
     const byWeek = new Map<string, LifeEvent[]>()
     for (const event of lifeEvents) {
+      // An event a few days before the birthdate shares a square with it, so
+      // the square is visible — but the event still predates the life.
+      if (event.date < birthdate) {
+        continue
+      }
+
       const weekId = getWeekIdFromDate(event.date)
       const existing = byWeek.get(weekId)
       if (existing) {
@@ -28,7 +34,7 @@ export const Calendar = () => {
       }
     }
     return byWeek
-  }, [lifeEvents])
+  }, [lifeEvents, birthdate])
 
   // `<=` so the final, partial year of life still gets a block.
   const years = Array.from({ length: totalYearsToDisplay + 1 }, (_, i) => (

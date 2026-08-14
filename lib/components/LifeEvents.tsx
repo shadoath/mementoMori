@@ -1,8 +1,4 @@
-import {
-  formatDateInput,
-  getSquareEndDateForDate,
-  getYearsToDisplay,
-} from '../../app/functions'
+import { formatDateInput, getYearsToDisplay } from '../../app/functions'
 import { MAX_LIFE_EXPECTANCY, useBaseContext } from '../../context/BaseContext'
 
 export const EventList = () => {
@@ -16,10 +12,10 @@ export const EventList = () => {
     birthdate.getFullYear() +
     getYearsToDisplay(birthdate, lifeExpectancy, MAX_LIFE_EXPECTANCY)
 
-  // Mirrors the calendar: a square is blank before the birthdate, and there is
+  // Mirrors the calendar: nothing is drawn before the birthdate, and there is
   // no square at all past the last year drawn.
   const isOnCalendar = (date: Date) =>
-    getSquareEndDateForDate(date) >= birthdate && date.getFullYear() <= lastYear
+    date >= birthdate && date.getFullYear() <= lastYear
 
   const sorted = [...lifeEvents].sort(
     (a, b) => a.date.getTime() - b.date.getTime()

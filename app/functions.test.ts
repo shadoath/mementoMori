@@ -5,7 +5,6 @@ import {
   formatDateInput,
   getDaysInMonth,
   getSquareEndDate,
-  getSquareEndDateForDate,
   getWeekId,
   getWeekIdFromDate,
   getWeeksLeft,
@@ -165,18 +164,6 @@ describe('years under 100', () => {
     expect(startOfDay(parseDateInput('0002-01-01') as Date).getFullYear()).toBe(
       2
     )
-    expect(getSquareEndDateForDate(new Date(1902, 0, 1)).getFullYear()).toBe(
-      1902
-    )
-  })
-})
-
-describe('getSquareEndDateForDate', () => {
-  it('returns the end of the square the date falls in', () => {
-    // May has 31 days: squares close on the 7th, 15th, 23rd and 31st.
-    expect(getSquareEndDateForDate(new Date(2000, 4, 14)).getDate()).toBe(15)
-    expect(getSquareEndDateForDate(new Date(2000, 4, 1)).getDate()).toBe(7)
-    expect(getSquareEndDateForDate(new Date(2000, 4, 31)).getDate()).toBe(31)
   })
 })
 

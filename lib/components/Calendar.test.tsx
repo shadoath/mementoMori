@@ -125,6 +125,42 @@ describe('Calendar', () => {
     expect(cell?.getAttribute('style')).toBeNull()
   })
 
+  it('ignores an event that predates the birthdate but shares its square', () => {
+    vi.setSystemTime(new Date(2020, 0, 10, 12))
+    // June's second square runs to the 15th, so the birthdate and an event on
+    // the 10th land in the same, visible square.
+    window.localStorage.setItem('birthdate', '2000-06-15')
+    window.localStorage.setItem(
+      'lifeEvents',
+      JSON.stringify([
+        { date: '2000-06-10', description: 'Before I existed', color: '#f00' },
+      ])
+    )
+    renderCalendar()
+
+    const cell = document.getElementById('2000-6-2')
+    expect(cell).not.toHaveClass('invisible')
+    expect(cell).not.toHaveAttribute('data-tooltip')
+    expect(cell?.getAttribute('style')).toBeNull()
+  })
+
+  it('drops stored events whose fields are not strings', () => {
+    vi.setSystemTime(new Date(2020, 0, 10, 12))
+    window.localStorage.setItem(
+      'lifeEvents',
+      JSON.stringify([
+        { date: '2010-06-15', description: {}, color: '#f00' },
+        { date: '2010-07-15', description: 'Fine', color: '#0f0' },
+      ])
+    )
+
+    expect(() => renderCalendar()).not.toThrow()
+    expect(document.getElementById('2010-7-2')).toHaveAttribute(
+      'data-tooltip',
+      'Fine'
+    )
+  })
+
   it('survives another tab clearing localStorage', () => {
     vi.setSystemTime(new Date(2020, 0, 10, 12))
     const { container } = renderCalendar()

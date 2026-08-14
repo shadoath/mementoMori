@@ -67,7 +67,18 @@ const lifeEventsOptions = {
 
       return stored.flatMap((event) => {
         const date = parseDateInput(event?.date)
-        return date ? [{ ...event, date }] : []
+        // A description that isn't a string would be rendered as a React
+        // child and crash the page until storage is cleared by hand.
+        if (
+          !date ||
+          typeof event.description !== 'string' ||
+          typeof event.color !== 'string' ||
+          (event.icon !== undefined && typeof event.icon !== 'string')
+        ) {
+          return []
+        }
+
+        return [{ ...event, date }]
       })
     } catch {
       // Corrupted or hand-edited localStorage shouldn't take the app down.
@@ -90,11 +101,19 @@ const clampLifeExpectancy = (years: number) => {
 const BaseContextProvider = ({ children }: { children: React.ReactNode }) => {
   // Read during the first render, before useLocalStorage's mount effect writes
   // its default back and makes every visit look like a returning one.
-  const [isFirstVisit] = useState(
-    () =>
-      typeof window !== 'undefined' &&
-      window.localStorage.getItem('birthdate') === null
-  )
+  const [isFirstVisit] = useState(() => {
+    if (typeof window === 'undefined') {
+      return false
+    }
+
+    try {
+      return window.localStorage.getItem('birthdate') === null
+    } catch {
+      // Storage can be denied outright — a sandboxed iframe, a browser policy.
+      // Treat that as a returning visit rather than failing to render at all.
+      return false
+    }
+  })
 
   const [storedBirthdate, setStoredBirthdate] = useLocalStorage<Date>(
     'birthdate',

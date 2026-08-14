@@ -63,12 +63,6 @@ export const getWeekIdFromDate = (date: Date) => {
   return getWeekId(year, monthIndex, SQUARES_PER_MONTH - 1)
 }
 
-/** The end of the square a given date falls in. */
-export const getSquareEndDateForDate = (date: Date) => {
-  const [year, month, square] = getWeekIdFromDate(date).split('-').map(Number)
-  return getSquareEndDate(year, month - 1, square - 1)
-}
-
 /**
  * How many year blocks the calendar draws past the birth year. Capped, because
  * a half-typed year like 0002 would otherwise ask for ~2,000 blocks of 48
