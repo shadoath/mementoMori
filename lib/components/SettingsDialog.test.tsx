@@ -38,37 +38,6 @@ describe('SettingsDialog', () => {
     expect(screen.getByLabelText('Birthdate')).toHaveValue('2000-01-01')
   })
 
-  it('punctuates the date as it is typed', () => {
-    renderSettings()
-    openDialog()
-    const input = screen.getByLabelText('Birthdate')
-
-    // Bare digits, the way someone actually types a date.
-    fireEvent.change(input, { target: { value: '1993' } })
-    expect(input).toHaveValue('1993')
-
-    fireEvent.change(input, { target: { value: '19930' } })
-    expect(input).toHaveValue('1993-0')
-
-    fireEvent.change(input, { target: { value: '19930514' } })
-    expect(input).toHaveValue('1993-05-14')
-  })
-
-  it('backspaces without stranding a dash', () => {
-    renderSettings()
-    openDialog()
-    const input = screen.getByLabelText('Birthdate')
-
-    fireEvent.change(input, { target: { value: '1993-05-1' } })
-    expect(input).toHaveValue('1993-05-1')
-
-    fireEvent.change(input, { target: { value: '1993-05-' } })
-    expect(input).toHaveValue('1993-05')
-
-    fireEvent.change(input, { target: { value: '1993-0' } })
-    expect(input).toHaveValue('1993-0')
-  })
-
   it('survives the birthdate field being cleared', () => {
     const { container } = renderSettings()
     openDialog()
@@ -101,16 +70,48 @@ describe('SettingsDialog', () => {
     expect(input).toHaveValue('0002-01-01')
   })
 
-  it('rejects a date that does not exist', () => {
+  it('leaves the text alone while it is being typed', () => {
     renderSettings()
     openDialog()
     const input = screen.getByLabelText('Birthdate')
 
-    fireEvent.change(input, { target: { value: '20230231' } })
+    // No reformatting mid-edit: that is what corrupted segments and moved
+    // the caret. What you type is what you see.
+    for (const value of ['1993-5-4', '2000--01', '19851231', '2001-3-7']) {
+      fireEvent.change(input, { target: { value } })
+      expect(input).toHaveValue(value)
+    }
+  })
+
+  it('tidies bare digits and single-digit segments when the field is left', () => {
+    renderSettings()
+    openDialog()
+    const input = screen.getByLabelText('Birthdate')
+
+    for (const [typed, tidied] of [
+      ['19851231', '1985-12-31'],
+      ['2001-3-7', '2001-03-07'],
+      ['1993-5-14', '1993-05-14'],
+    ]) {
+      fireEvent.change(input, { target: { value: typed } })
+      fireEvent.blur(input)
+      expect(input).toHaveValue(tidied)
+    }
+  })
+
+  it('keeps an impossible date on screen instead of silently reverting', () => {
+    renderSettings()
+    openDialog()
+    const input = screen.getByLabelText('Birthdate')
+
+    fireEvent.change(input, { target: { value: '2023-02-31' } })
     expect(input).toHaveValue('2023-02-31')
+
     fireEvent.blur(input)
-    // Snapped back rather than accepting February 31st.
-    expect(input).toHaveValue('2000-01-01')
+    // February 31st is not accepted, but the entry stays visible with an
+    // error rather than snapping back with no explanation.
+    expect(input).toHaveValue('2023-02-31')
+    expect(screen.getByText('Use YYYY-MM-DD')).toBeInTheDocument()
   })
 
   it('clamps the life expectancy to the allowed range', () => {

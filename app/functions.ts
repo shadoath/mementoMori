@@ -102,16 +102,51 @@ export const formatDateInput = (date: Date) =>
   )}-${pad(date.getDate())}`
 
 /**
- * Reshapes whatever is in a date field into YYYY-MM-DD as it is typed, so the
- * displayed format never depends on the browser's locale. Keeps only digits and
- * re-groups them, which means backspacing never strands a trailing dash.
+ * Punctuates eight bare digits as YYYY-MM-DD, so 19851231 becomes 1985-12-31.
+ *
+ * Renumbers the segments from the digits alone, so it is only meaningful for a
+ * complete entry — never apply it to a value mid-edit, where `1993--14` (month
+ * deleted) would become `1993-14`. Used by {@link normalizeDateInput}.
  */
-export const formatDateDraft = (raw: string) => {
+const formatDateDraft = (raw: string) => {
   const digits = raw.replace(/\D/g, '').slice(0, 8)
 
   return [digits.slice(0, 4), digits.slice(4, 6), digits.slice(6, 8)]
     .filter(Boolean)
     .join('-')
+}
+
+/**
+ * Reads a finished but sloppy entry — single-digit segments, bare digits — and
+ * returns the date it meant. Null when it can't be salvaged, so a real typo
+ * still gets rejected rather than silently reinterpreted.
+ */
+export const normalizeDateInput = (raw: string): Date | null => {
+  const trimmed = raw.trim()
+  if (trimmed === '') {
+    return null
+  }
+
+  const direct = parseDateInput(trimmed)
+  if (direct) {
+    return direct
+  }
+
+  // 1993-5-4 -> 1993-05-04
+  const segments = trimmed.split('-')
+  if (segments.length === 3 && segments.every((part) => /^\d+$/.test(part))) {
+    const padded = `${segments[0].padStart(4, '0')}-${segments[1].padStart(
+      2,
+      '0'
+    )}-${segments[2].padStart(2, '0')}`
+    const parsed = parseDateInput(padded)
+    if (parsed) {
+      return parsed
+    }
+  }
+
+  // 19851231 -> 1985-12-31
+  return parseDateInput(formatDateDraft(trimmed))
 }
 
 /** Returns null for partial or nonsense input, e.g. a cleared date field. */

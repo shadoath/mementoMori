@@ -2,7 +2,6 @@ import { describe, expect, it } from 'vitest'
 import {
   MS_PER_WEEK,
   SQUARES_PER_MONTH,
-  formatDateDraft,
   formatDateInput,
   getDaysInMonth,
   getSquareEndDate,
@@ -11,6 +10,7 @@ import {
   getWeeksLeft,
   getYearsToDisplay,
   isValidDate,
+  normalizeDateInput,
   parseDateInput,
   startOfDay,
 } from './functions'
@@ -125,28 +125,34 @@ describe('parseDateInput', () => {
   })
 })
 
-describe('formatDateDraft', () => {
-  it('punctuates bare digits', () => {
-    expect(formatDateDraft('1993')).toBe('1993')
-    expect(formatDateDraft('19930')).toBe('1993-0')
-    expect(formatDateDraft('199305')).toBe('1993-05')
-    expect(formatDateDraft('19930514')).toBe('1993-05-14')
+describe('normalizeDateInput', () => {
+  const iso = (d: Date | null) => (d ? formatDateInput(d) : null)
+
+  it('pads single-digit segments', () => {
+    expect(iso(normalizeDateInput('1993-5-4'))).toBe('1993-05-04')
+    expect(iso(normalizeDateInput('1993-05-4'))).toBe('1993-05-04')
+    expect(iso(normalizeDateInput('1993-5-14'))).toBe('1993-05-14')
   })
 
-  it('leaves an already punctuated date alone', () => {
-    expect(formatDateDraft('1993-05-14')).toBe('1993-05-14')
+  it('accepts bare digits', () => {
+    expect(iso(normalizeDateInput('19851231'))).toBe('1985-12-31')
   })
 
-  it('never strands a trailing dash while backspacing', () => {
-    expect(formatDateDraft('1993-05-')).toBe('1993-05')
-    expect(formatDateDraft('1993-')).toBe('1993')
-    expect(formatDateDraft('')).toBe('')
+  it('accepts an already correct date', () => {
+    expect(iso(normalizeDateInput('2000-01-01'))).toBe('2000-01-01')
+    expect(iso(normalizeDateInput('  2000-01-01  '))).toBe('2000-01-01')
   })
 
-  it('ignores stray characters and overlong input', () => {
-    expect(formatDateDraft('1993/05/14')).toBe('1993-05-14')
-    expect(formatDateDraft('abc1993def0514')).toBe('1993-05-14')
-    expect(formatDateDraft('199305149999')).toBe('1993-05-14')
+  it('refuses to guess at a date that cannot exist', () => {
+    expect(normalizeDateInput('2023-02-31')).toBeNull()
+    expect(normalizeDateInput('1993-13-01')).toBeNull()
+    expect(normalizeDateInput('')).toBeNull()
+    expect(normalizeDateInput('nonsense')).toBeNull()
+  })
+
+  it('does not rescue a half-deleted date by renumbering it', () => {
+    // 2000--01 means "the month is gone", not "January 2000".
+    expect(normalizeDateInput('2000--01')).toBeNull()
   })
 })
 
