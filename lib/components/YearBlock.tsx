@@ -3,6 +3,7 @@ import {
   SQUARES_PER_MONTH,
   getSquareEndDate,
   getWeekId,
+  startOfDay,
 } from '../../app/functions'
 import {
   type LifeEvent,
@@ -20,7 +21,7 @@ export const YearBlock = ({
   eventsByWeek: Map<string, LifeEvent[]>
 }) => {
   const { birthdate, lifeExpectancy } = useBaseContext()
-  const currentTime = new Date().getTime()
+  const today = startOfDay(new Date())
   const year = birthdate.getFullYear() + yearCount
   const endOfExpectancy =
     birthdate.getTime() + lifeExpectancy * WEEKS_PER_YEAR * MS_PER_WEEK
@@ -34,12 +35,15 @@ export const YearBlock = ({
             {Array.from({ length: SQUARES_PER_MONTH }, (_, square) => {
               const weekId = getWeekId(year, monthIndex, square)
               const squareEnd = getSquareEndDate(year, monthIndex, square)
-              const squareEndTime = squareEnd.getTime()
 
-              const isFilled = squareEndTime <= currentTime
+              // Strictly before today: the square's last day has to be over
+              // before it counts as lived.
+              const isFilled = squareEnd < today
               const isInvisible = squareEnd < birthdate
-              const isExtra = isFilled && squareEndTime > endOfExpectancy
-              const events = eventsByWeek.get(weekId)
+              const isExtra = isFilled && squareEnd.getTime() > endOfExpectancy
+              // An event before the birthdate would otherwise paint a square in
+              // the blank run leading up to it.
+              const events = isInvisible ? undefined : eventsByWeek.get(weekId)
 
               return (
                 <div

@@ -5,11 +5,14 @@ import {
   formatDateInput,
   getDaysInMonth,
   getSquareEndDate,
+  getSquareEndDateForDate,
   getWeekId,
   getWeekIdFromDate,
   getWeeksLeft,
+  getYearsToDisplay,
   isValidDate,
   parseDateInput,
+  startOfDay,
 } from './functions'
 
 describe('getDaysInMonth', () => {
@@ -133,6 +136,42 @@ describe('formatDateInput', () => {
 
   it('zero-pads', () => {
     expect(formatDateInput(new Date(2005, 3, 9))).toBe('2005-04-09')
+  })
+})
+
+describe('getYearsToDisplay', () => {
+  const birthdate = new Date(2000, 0, 1)
+
+  it('uses the life expectancy while it is the larger number', () => {
+    expect(getYearsToDisplay(birthdate, 42, 111, new Date(2020, 0, 1))).toBe(42)
+  })
+
+  it('extends past the life expectancy once outlived', () => {
+    expect(getYearsToDisplay(birthdate, 42, 111, new Date(2050, 0, 1))).toBe(50)
+  })
+
+  it('caps an implausible birthdate', () => {
+    expect(
+      getYearsToDisplay(new Date(2, 0, 1), 42, 111, new Date(2020, 0, 1))
+    ).toBe(111)
+  })
+})
+
+describe('getSquareEndDateForDate', () => {
+  it('returns the end of the square the date falls in', () => {
+    // May has 31 days: squares close on the 7th, 15th, 23rd and 31st.
+    expect(getSquareEndDateForDate(new Date(2000, 4, 14)).getDate()).toBe(15)
+    expect(getSquareEndDateForDate(new Date(2000, 4, 1)).getDate()).toBe(7)
+    expect(getSquareEndDateForDate(new Date(2000, 4, 31)).getDate()).toBe(31)
+  })
+})
+
+describe('startOfDay', () => {
+  it('strips the clock', () => {
+    const stripped = startOfDay(new Date(2020, 5, 15, 23, 59, 59))
+    expect(stripped.getDate()).toBe(15)
+    expect(stripped.getHours()).toBe(0)
+    expect(stripped.getMinutes()).toBe(0)
   })
 })
 

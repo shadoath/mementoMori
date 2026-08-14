@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useMemo, useState } from 'react'
+import React, { useCallback, useMemo, useState } from 'react'
 import useLocalStorage from 'use-local-storage'
 import {
   WEEKS_PER_YEAR,
@@ -105,16 +105,21 @@ const BaseContextProvider = ({ children }: { children: React.ReactNode }) => {
     'lifeExpectancy',
     DEFAULT_LIFE_EXPECTANCY
   )
-  const [lifeEvents, setLifeEvents] = useLocalStorage<LifeEvent[]>(
+  const [storedLifeEvents, setLifeEvents] = useLocalStorage<LifeEvent[]>(
     'lifeEvents',
     [],
     lifeEventsOptions
   )
 
-  const birthdate = isValidDate(storedBirthdate)
-    ? storedBirthdate
-    : defaultBirthdate
+  // useLocalStorage's cross-tab sync hands back `undefined` whenever the other
+  // tab clears the key, despite what the type parameter claims — so every read
+  // has to survive it.
+  const birthdate =
+    storedBirthdate && isValidDate(storedBirthdate)
+      ? storedBirthdate
+      : defaultBirthdate
   const lifeExpectancy = clampLifeExpectancy(storedLifeExpectancy)
+  const lifeEvents = storedLifeEvents ?? []
 
   const setBirthdate = useCallback(
     (date: Date) => {
@@ -172,19 +177,7 @@ const BaseContextProvider = ({ children }: { children: React.ReactNode }) => {
     ]
   )
 
-  // The server has no localStorage, so it renders the defaults while the client
-  // renders whatever was saved. Holding the children back until after mount
-  // keeps the two from disagreeing over the calendar's ~4,000 cells.
-  const [isHydrated, setIsHydrated] = useState(false)
-  useEffect(() => {
-    setIsHydrated(true)
-  }, [])
-
-  return (
-    <BaseContext.Provider value={value}>
-      {isHydrated ? children : null}
-    </BaseContext.Provider>
-  )
+  return <BaseContext.Provider value={value}>{children}</BaseContext.Provider>
 }
 
 const useBaseContext = () => {

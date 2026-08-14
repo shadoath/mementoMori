@@ -1,4 +1,4 @@
-import { render } from '@testing-library/react'
+import { act, render } from '@testing-library/react'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { BaseContextProvider } from '../../context/BaseContext'
 import { Calendar } from './Calendar'
@@ -30,6 +30,18 @@ describe('Calendar', () => {
     expect(document.getElementById('2000-1-2')).not.toHaveClass('filled')
     expect(document.getElementById('2000-1-3')).not.toHaveClass('filled')
     expect(document.getElementById('2000-1-4')).not.toHaveClass('filled')
+  })
+
+  it('waits for a square to be fully over before filling it', () => {
+    // The first square closes on the 7th, so it is only lived from the 8th.
+    vi.setSystemTime(new Date(2000, 0, 7, 23, 59))
+    const { unmount } = renderCalendar()
+    expect(document.getElementById('2000-1-1')).not.toHaveClass('filled')
+    unmount()
+
+    vi.setSystemTime(new Date(2000, 0, 8, 0, 1))
+    renderCalendar()
+    expect(document.getElementById('2000-1-1')).toHaveClass('filled')
   })
 
   it('fills the whole month once it has passed', () => {
@@ -94,5 +106,47 @@ describe('Calendar', () => {
     expect(document.getElementById('2000-5-1')).not.toHaveAttribute(
       'data-tooltip'
     )
+  })
+
+  it('does not paint an event onto a square before the birthdate', () => {
+    vi.setSystemTime(new Date(2020, 0, 10, 12))
+    window.localStorage.setItem('birthdate', '2000-06-15')
+    window.localStorage.setItem(
+      'lifeEvents',
+      JSON.stringify([
+        { date: '2000-03-01', description: 'Too early', color: '#ff0000' },
+      ])
+    )
+    renderCalendar()
+
+    const cell = document.getElementById('2000-3-1')
+    expect(cell).toHaveClass('invisible')
+    expect(cell).not.toHaveAttribute('data-tooltip')
+    expect(cell?.getAttribute('style')).toBeNull()
+  })
+
+  it('survives another tab clearing localStorage', () => {
+    vi.setSystemTime(new Date(2020, 0, 10, 12))
+    const { container } = renderCalendar()
+
+    // useLocalStorage's storage listener hands back undefined for a cleared
+    // key, whatever its type parameter says.
+    expect(() => {
+      act(() => {
+        for (const key of ['birthdate', 'lifeEvents']) {
+          window.dispatchEvent(
+            new StorageEvent('storage', {
+              key,
+              newValue: null,
+              storageArea: window.localStorage,
+            })
+          )
+        }
+      })
+    }).not.toThrow()
+
+    // Falls back to the default birthdate rather than blowing up.
+    expect(container.querySelectorAll('.year-wrapper').length).toBeGreaterThan(0)
+    expect(document.getElementById('2005-5-1')).toBeTruthy()
   })
 })

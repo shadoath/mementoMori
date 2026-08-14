@@ -101,6 +101,25 @@ describe('SettingsDialog', () => {
     expect(screen.queryByText('Moved house')).not.toBeInTheDocument()
   })
 
+  it('flags events that fall outside the drawn calendar', () => {
+    window.localStorage.setItem(
+      'lifeEvents',
+      JSON.stringify([
+        { date: '1975-01-01', description: 'Before my time', color: '#ff0000' },
+        { date: '2010-06-15', description: 'Within range', color: '#00ff00' },
+      ])
+    )
+    renderSettings()
+
+    const before = screen.getByText('Before my time').closest('li')
+    const within = screen.getByText('Within range').closest('li')
+
+    expect(before).toHaveClass('life-event-off-calendar')
+    expect(before?.textContent).toContain('outside the calendar')
+    expect(within).not.toHaveClass('life-event-off-calendar')
+    expect(within?.textContent).not.toContain('outside the calendar')
+  })
+
   it('will not add an event without a date and a description', () => {
     renderSettings()
     openDialog()

@@ -6,6 +6,10 @@ export const SQUARES_PER_MONTH = 4
 
 export const isValidDate = (date: Date) => !Number.isNaN(date.getTime())
 
+/** Midnight local time, so day-granularity comparisons ignore the clock. */
+export const startOfDay = (date: Date) =>
+  new Date(date.getFullYear(), date.getMonth(), date.getDate())
+
 /** `month` is 1-indexed. */
 export const getDaysInMonth = (month: number, year: number) => {
   return new Date(year, month, 0).getDate()
@@ -45,6 +49,27 @@ export const getWeekIdFromDate = (date: Date) => {
   }
 
   return getWeekId(year, monthIndex, SQUARES_PER_MONTH - 1)
+}
+
+/** The end of the square a given date falls in. */
+export const getSquareEndDateForDate = (date: Date) => {
+  const [year, month, square] = getWeekIdFromDate(date).split('-').map(Number)
+  return getSquareEndDate(year, month - 1, square - 1)
+}
+
+/**
+ * How many year blocks the calendar draws past the birth year. Capped, because
+ * a half-typed year like 0002 would otherwise ask for ~2,000 blocks of 48
+ * cells each and lock up the page.
+ */
+export const getYearsToDisplay = (
+  birthdate: Date,
+  lifeExpectancy: number,
+  maxYears: number,
+  now = new Date()
+) => {
+  const yearsAlive = now.getFullYear() - birthdate.getFullYear()
+  return Math.min(maxYears, Math.max(lifeExpectancy, yearsAlive))
 }
 
 export const getWeeksLeft = (

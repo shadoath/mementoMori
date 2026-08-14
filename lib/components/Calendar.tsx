@@ -1,5 +1,5 @@
 import { useMemo } from 'react'
-import { getWeekIdFromDate } from '../../app/functions'
+import { getWeekIdFromDate, getYearsToDisplay } from '../../app/functions'
 import {
   type LifeEvent,
   MAX_LIFE_EXPECTANCY,
@@ -10,13 +10,10 @@ import { YearBlock } from './YearBlock'
 export const Calendar = () => {
   const { birthdate, lifeExpectancy, lifeEvents } = useBaseContext()
   const baseYear = birthdate.getFullYear()
-  const yearsAlive = new Date().getFullYear() - baseYear
-  // Extend the calendar if we're past the life expectancy, but keep a ceiling:
-  // a half-typed year like 0002 would otherwise ask for ~2000 blocks of 48
-  // cells each and lock up the page.
-  const totalYearsToDisplay = Math.min(
-    MAX_LIFE_EXPECTANCY,
-    Math.max(lifeExpectancy, yearsAlive)
+  const totalYearsToDisplay = getYearsToDisplay(
+    birthdate,
+    lifeExpectancy,
+    MAX_LIFE_EXPECTANCY
   )
 
   const eventsByWeek = useMemo(() => {
