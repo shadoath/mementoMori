@@ -143,6 +143,14 @@ describe('normalizeDateInput', () => {
     expect(iso(normalizeDateInput('  2000-01-01  '))).toBe('2000-01-01')
   })
 
+  it('will not salvage a typo by discarding characters', () => {
+    // One digit too many is a mistake, not a date with a spare digit.
+    expect(normalizeDateInput('198512311')).toBeNull()
+    expect(normalizeDateInput('1985123')).toBeNull()
+    expect(normalizeDateInput('2000-0x1-01')).toBeNull()
+    expect(normalizeDateInput('1985/12/31')).toBeNull()
+  })
+
   it('refuses to guess at a date that cannot exist', () => {
     expect(normalizeDateInput('2023-02-31')).toBeNull()
     expect(normalizeDateInput('1993-13-01')).toBeNull()

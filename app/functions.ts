@@ -145,8 +145,14 @@ export const normalizeDateInput = (raw: string): Date | null => {
     }
   }
 
-  // 19851231 -> 1985-12-31
-  return parseDateInput(formatDateDraft(trimmed))
+  // 19851231 -> 1985-12-31. Only for exactly eight bare digits: formatDateDraft
+  // discards everything else and truncates, so "198512311" would quietly lose
+  // its last digit and "2000-0x1-01" would become a date nobody typed.
+  if (/^\d{8}$/.test(trimmed)) {
+    return parseDateInput(formatDateDraft(trimmed))
+  }
+
+  return null
 }
 
 /** Returns null for partial or nonsense input, e.g. a cleared date field. */
