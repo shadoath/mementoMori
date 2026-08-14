@@ -64,6 +64,21 @@ describe('Calendar', () => {
     expect(document.getElementById('2000-4-1')).not.toHaveClass('invisible')
   })
 
+  it('marks pre-birth squares both filled and invisible', () => {
+    // Squares before the birthdate carry `filled` too, because their end date
+    // has passed. globals.css must therefore exclude `.invisible` from the
+    // fill rule, or the blank pre-birth run renders as lived weeks. jsdom
+    // doesn't apply the stylesheet, so this pins the class pairing the CSS
+    // depends on; the rendered result is checked in the browser.
+    vi.setSystemTime(new Date(2020, 0, 10, 12))
+    window.localStorage.setItem('birthdate', '2000-06-15')
+    renderCalendar()
+
+    const preBirth = document.getElementById('2000-1-1')
+    expect(preBirth).toHaveClass('filled')
+    expect(preBirth).toHaveClass('invisible')
+  })
+
   it('marks weeks lived beyond the life expectancy as extra', () => {
     vi.setSystemTime(new Date(2011, 0, 10, 12))
     window.localStorage.setItem('lifeExpectancy', '10')
@@ -74,12 +89,45 @@ describe('Calendar', () => {
     expect(document.getElementById('2010-6-1')).toHaveClass('filled')
   })
 
+  it('marks the week you are actually in, and only that one', () => {
+    // The 10th falls in January's second square, which closes on the 15th.
+    vi.setSystemTime(new Date(2000, 0, 10, 12))
+    const { container } = renderCalendar()
+
+    expect(container.querySelectorAll('.current')).toHaveLength(1)
+    expect(document.getElementById('2000-1-2')).toHaveClass('current')
+    expect(document.getElementById('2000-1-2')).toHaveAttribute(
+      'data-tooltip',
+      'This week'
+    )
+  })
+
+  it('groups the years into decades with an age in the margin', () => {
+    vi.setSystemTime(new Date(2020, 0, 10, 12))
+    window.localStorage.setItem('lifeExpectancy', '42')
+    const { container } = renderCalendar()
+
+    // 43 year blocks over 10-year rows.
+    const decades = container.querySelectorAll('.decade')
+    expect(decades).toHaveLength(5)
+    expect(
+      Array.from(container.querySelectorAll('.decade-age')).map(
+        (el) => el.textContent
+      )
+    ).toEqual(['0', '10', '20', '30', '40'])
+    expect(
+      Array.from(container.querySelectorAll('.decade-year')).map(
+        (el) => el.textContent
+      )
+    ).toEqual(['2000', '2010', '2020', '2030', '2040'])
+  })
+
   it('renders a block for every year of life, plus the partial final one', () => {
     vi.setSystemTime(new Date(2020, 0, 10, 12))
     window.localStorage.setItem('lifeExpectancy', '42')
     const { container } = renderCalendar()
 
-    expect(container.querySelectorAll('.year-wrapper')).toHaveLength(43)
+    expect(container.querySelectorAll('.year-cell')).toHaveLength(43)
   })
 
   it('caps how many year blocks an implausible birthdate can ask for', () => {
@@ -87,7 +135,7 @@ describe('Calendar', () => {
     window.localStorage.setItem('birthdate', '0002-01-01')
     const { container } = renderCalendar()
 
-    expect(container.querySelectorAll('.year-wrapper')).toHaveLength(112)
+    expect(container.querySelectorAll('.year-cell')).toHaveLength(112)
   })
 
   it('places a life event on the square containing its date', () => {
@@ -106,6 +154,44 @@ describe('Calendar', () => {
     expect(document.getElementById('2000-5-1')).not.toHaveAttribute(
       'data-tooltip'
     )
+  })
+
+  it('keeps an event visible when it lands in the current week', () => {
+    vi.setSystemTime(new Date(2020, 0, 10, 12))
+    window.localStorage.setItem(
+      'lifeEvents',
+      JSON.stringify([
+        { date: '2020-01-10', description: 'Today', color: '#00ff00' },
+      ])
+    )
+    renderCalendar()
+
+    const cell = document.getElementById('2020-1-2')
+    expect(cell).toHaveClass('current')
+    // The event keeps its own colour; the rubric ring still marks the week.
+    expect(cell?.getAttribute('style')).toContain('rgb(0, 255, 0)')
+    expect(cell).toHaveAttribute('data-tooltip', 'This week · Today')
+  })
+
+  it('gives a marked square an accessible name, not just a silent tab stop', () => {
+    vi.setSystemTime(new Date(2020, 0, 10, 12))
+    window.localStorage.setItem(
+      'lifeEvents',
+      JSON.stringify([
+        { date: '2000-05-14', description: 'Something', color: '#ff0000' },
+      ])
+    )
+    renderCalendar()
+
+    const cell = document.getElementById('2000-5-2')
+    expect(cell).toHaveAttribute('tabindex', '0')
+    expect(cell).toHaveAttribute('role', 'img')
+    expect(cell).toHaveAccessibleName('Something')
+
+    // Unmarked squares stay out of the tab order entirely.
+    const plain = document.getElementById('2000-5-1')
+    expect(plain).not.toHaveAttribute('tabindex')
+    expect(plain).not.toHaveAttribute('role')
   })
 
   it('does not paint an event onto a square before the birthdate', () => {
@@ -182,7 +268,7 @@ describe('Calendar', () => {
     }).not.toThrow()
 
     // Falls back to the default birthdate rather than blowing up.
-    expect(container.querySelectorAll('.year-wrapper').length).toBeGreaterThan(0)
+    expect(container.querySelectorAll('.year-cell').length).toBeGreaterThan(0)
     expect(document.getElementById('2005-5-1')).toBeTruthy()
   })
 })

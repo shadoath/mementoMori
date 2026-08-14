@@ -23,21 +23,44 @@ describe('Stats', () => {
     vi.useRealTimers()
   })
 
-  it('counts weeks lived against the same 52.1429 weeks/year the grid uses', () => {
+  it('counts weeks against the same 52.1429 weeks/year the grid uses', () => {
     vi.setSystemTime(birthdate.getTime() + 100 * MS_PER_WEEK)
     const { container } = renderStats()
+    const text = container.textContent ?? ''
 
-    // 42 * 52.1429 = 2190.0018, rounded up.
-    expect(container.textContent).toContain('100 weeks lived of 2191 total weeks')
-    expect(container.textContent).toContain('5% of 42 years lived.')
+    // 42 * 52.1429 = 2190.0018, rounded up to 2191.
+    expect(text).toContain('100')
+    expect(text).toContain('weeks lived')
+    expect(text).toContain('2,091')
+    expect(text).toContain('weeks remaining')
+    expect(text).toContain('5%')
+    expect(text).toContain('of 42 years spent')
   })
 
   it('never reports negative weeks for a birthdate in the future', () => {
     vi.setSystemTime(birthdate.getTime() - 50 * MS_PER_WEEK)
     const { container } = renderStats()
+    const text = container.textContent ?? ''
 
-    expect(container.textContent).toContain('0 weeks lived of 2191 total weeks')
-    expect(container.textContent).toContain('0% of 42 years lived.')
+    expect(text).toContain('0%')
+    // Never more remaining than the grid draws, even before life starts.
+    expect(text).toContain('2,191')
+    expect(text).not.toContain('2,241')
+    expect(text).not.toContain('-')
+  })
+
+  it('never promises remaining weeks once the expectancy is outlived', () => {
+    window.localStorage.setItem('lifeExpectancy', '10')
+    vi.setSystemTime(birthdate.getTime() + 700 * MS_PER_WEEK)
+    const { container } = renderStats()
+    const text = container.textContent ?? ''
+
+    // 10 * 52.1429 = 522, so 700 weeks in there is nothing left to spend.
+    expect(text).toContain('700')
+    expect(text).toContain('0weeks remaining')
+    // Outliving the estimate is reported rather than capped at 100%.
+    expect(text).toContain('134%')
+    expect(text).not.toContain('-')
   })
 
   it('tracks the configured life expectancy', () => {
@@ -45,8 +68,8 @@ describe('Stats', () => {
     vi.setSystemTime(birthdate.getTime() + 100 * MS_PER_WEEK)
     const { container } = renderStats()
 
-    // 80 * 52.1429 = 4171.432, rounded up.
-    expect(container.textContent).toContain('100 weeks lived of 4172 total weeks')
-    expect(container.textContent).toContain('of 80 years lived.')
+    // 80 * 52.1429 = 4171.432, rounded up to 4172.
+    expect(container.textContent).toContain('4,072')
+    expect(container.textContent).toContain('of 80 years spent')
   })
 })

@@ -8,13 +8,19 @@ import { SettingsDialog } from './components/SettingsDialog'
 export const MementoMori = () => {
   return (
     <div className='App'>
-      <h2 style={{ textAlign: 'center' }}>MEMENTO MORI</h2>
+      <header className='masthead'>
+        <h1 className='wordmark'>Memento Mori</h1>
+        <p className='masthead-rule'>One square, one week</p>
+      </header>
+
       <HydrationGate>
         <Calendar />
         <Stats />
         <EventList />
       </HydrationGate>
+
       <Quote />
+
       <HydrationGate>
         <SettingsDialog />
       </HydrationGate>
