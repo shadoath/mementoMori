@@ -188,15 +188,11 @@ export const SettingsDialog = () => {
               <DateField
                 label='Birthdate'
                 value={birthdateDraft}
-                onDraftChange={(next) => {
-                  setBirthdateDraft(next)
-                  // Only a complete, real date is worth redrawing the calendar
-                  // for; anything shorter is still being typed.
-                  const parsed = parseDateInput(next)
-                  if (parsed) {
-                    setBirthdate(parsed)
-                  }
-                }}
+                // Nothing is committed until the field settles. Committing per
+                // keystroke would save the valid prefix of "1993-05-141"
+                // before the last character arrived, so the entry would show an
+                // error while having already replaced the birthdate.
+                onDraftChange={setBirthdateDraft}
                 onSettle={settleBirthdate}
               />
             </Grid>

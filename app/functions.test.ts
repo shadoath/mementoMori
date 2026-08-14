@@ -151,6 +151,13 @@ describe('normalizeDateInput', () => {
     expect(normalizeDateInput('1985/12/31')).toBeNull()
   })
 
+  it('never pads the year, which would invent a different one', () => {
+    // A missing digit is a typo, not the year 993.
+    expect(normalizeDateInput('993-5-4')).toBeNull()
+    expect(normalizeDateInput('93-05-04')).toBeNull()
+    expect(normalizeDateInput('1993-005-04')).toBeNull()
+  })
+
   it('refuses to guess at a date that cannot exist', () => {
     expect(normalizeDateInput('2023-02-31')).toBeNull()
     expect(normalizeDateInput('1993-13-01')).toBeNull()

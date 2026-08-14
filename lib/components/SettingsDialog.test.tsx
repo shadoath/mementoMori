@@ -99,6 +99,23 @@ describe('SettingsDialog', () => {
     }
   })
 
+  it('does not save the valid prefix of an invalid entry', () => {
+    const { container } = renderSettings()
+    openDialog()
+    const input = screen.getByLabelText('Birthdate')
+
+    // 1993-05-14 is a valid prefix of this; committing per keystroke would
+    // have saved it on the way past.
+    fireEvent.change(input, { target: { value: '1993-05-141' } })
+    fireEvent.blur(input)
+
+    expect(input).toHaveValue('1993-05-141')
+    expect(screen.getByText('Use YYYY-MM-DD')).toBeInTheDocument()
+    // Still the birthdate it started with: 2000-01-01 with a 42 year span.
+    expect(container.textContent).toContain('of 42 years spent')
+    expect(window.localStorage.getItem('birthdate')).toBe('2000-01-01')
+  })
+
   it('keeps an impossible date on screen instead of silently reverting', () => {
     renderSettings()
     openDialog()

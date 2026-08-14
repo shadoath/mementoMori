@@ -132,14 +132,21 @@ export const normalizeDateInput = (raw: string): Date | null => {
     return direct
   }
 
-  // 1993-5-4 -> 1993-05-04
+  // 1993-5-4 -> 1993-05-04. The year is never padded: "993-5-4" is a missing
+  // digit, and padding it would silently commit the year 993.
   const segments = trimmed.split('-')
-  if (segments.length === 3 && segments.every((part) => /^\d+$/.test(part))) {
-    const padded = `${segments[0].padStart(4, '0')}-${segments[1].padStart(
-      2,
-      '0'
-    )}-${segments[2].padStart(2, '0')}`
-    const parsed = parseDateInput(padded)
+  if (
+    segments.length === 3 &&
+    /^\d{4}$/.test(segments[0]) &&
+    /^\d{1,2}$/.test(segments[1]) &&
+    /^\d{1,2}$/.test(segments[2])
+  ) {
+    const parsed = parseDateInput(
+      `${segments[0]}-${segments[1].padStart(2, '0')}-${segments[2].padStart(
+        2,
+        '0'
+      )}`
+    )
     if (parsed) {
       return parsed
     }
